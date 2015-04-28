@@ -1,0 +1,32 @@
+body,
+html {
+    margin: 20px 80px;
+    padding: 0;
+    color: #000;
+}
+
+#app {
+    background: #c9c;
+    max-width: 1000px;
+    border: 1px solid black;
+    border-collapse: collapse;
+    -webkit-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+    -moz-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+    box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+}
+
+#content {
+    border-left: 1px solid black;
+    margin-left: 250px;
+    background: #9c9;
+}
+
+#sidebar {
+    float: left;
+    display: flex
+    width: 250px;
+}
+
+#footer {
+    clear: both;
+}
