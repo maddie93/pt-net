@@ -1,95 +1,133 @@
-//var joint = require('./jointjs/joint');
-//
-//var graph = new joint.dia.Graph;
-//var paper = new joint.dia.Paper({
-//    el: $('#paper'),
-//    width: 800,
-//    height: 350,
-//    gridSize: 10,
-//    perpendicularLinks: true,
-//    model: graph
-//});
-//
+var V = require('vectorizer').V;
+var joint = require('jointjs');
+var Graph = joint.dia.Graph;
 var pn = joint.shapes.pn;
 
-var pReady = new pn.Place({ position: { x: 140, y: 50 }, attrs: { '.label': { text: 'ready' }  }, tokens: 1 });
-var pIdle = new pn.Place({ position: { x: 140, y: 260 }, attrs: { '.label': { text: 'idle' } }, tokens: 2 });
-var buffer = new pn.Place({ position: { x: 350, y: 160 }, attrs: { '.label': { text: 'buffer' }  }, tokens: 12 });
-var cAccepted = new pn.Place({ position: { x: 550, y: 50 }, attrs: { '.label': { text: 'accepted' }  }, tokens: 1 });
-var cReady = new pn.Place({ position: { x: 560, y: 260 }, attrs: { '.label': { text: 'ready' }  }, tokens: 3 });
+module.exports = joint.dia.Paper.extend({
+    initialize: function (options) {
+        _.bindAll(this, 'addTransition', 'addPlace', 'addLink', 'startSimulation', 'stopSimulation', '_fireTransition', 'simulate');
 
-var pProduce = new pn.Transition({ position: { x: 50, y: 160 }, attrs: { '.label': { text: 'produce' }  } });
-var pSend = new pn.Transition({ position: { x: 270, y: 160 }, attrs: { '.label': { text: 'send' }  } });
-var cAccept = new pn.Transition({ position: { x: 470, y: 160 }, attrs: { '.label': { text: 'accept' }  } });
-var cConsume = new pn.Transition({ position: { x: 680, y: 160 }, attrs: { '.label': { text: 'consume' }  } });
+        this.el = options.el;
+        this.width = options.width;
+        this.height = options.height;
+        this.gridSize = options.gridSize;
+        this.perpendicularLinks = options.perpendicularLinks;
+        this.model = new Graph({transitions: []});
 
-function link(a, b) {
+        joint.dia.Paper.prototype.initialize.call(this, options);
+    },
 
-    return new pn.Link({
-        source: { id: a.id, selector: '.root' },
-        target: { id: b.id, selector: '.root' }
-    });
-}
+    addPlace: function (x, y, text, tokens) {
+        var place = new pn.Place({position: {x: x, y: y}, attrs: {'.label': {text: text}}, tokens: tokens});
+        this.model.addCell(place);
+        return place;
+    },
 
-graph.addCell([ pReady, pIdle, buffer, cAccepted, cReady, pProduce, pSend, cAccept, cConsume ]);
+    addTransition: function (x, y, text) {
+        var transition = new pn.Transition({position: {x: x, y: y}, attrs: {'.label': {text: text}}});
+        this.model.addCell(transition);
+        return transition;
+    },
 
-graph.addCell([
-    link(pProduce, pReady),
-    link(pReady, pSend),
-    link(pSend, pIdle),
-    link(pIdle, pProduce),
-    link(pSend, buffer),
-    link(buffer, cAccept),
-    link(cAccept, cAccepted),
-    link(cAccepted, cConsume),
-    link(cConsume, cReady),
-    link(cReady, cAccept)
-]);
+    addLink: function (a, b) {
+        var link = new pn.Link({
+            source: {id: a.id, selector: '.root'},
+            target: {id: b.id, selector: '.root'}
+        });
+        this.model.addCell(link);
+        return link;
+    },
 
+    startSimulation: function () {
+        var pReady = this.addPlace(140, 50, 'ready', 1);
+        var pIdle = this.addPlace(140, 260, 'idle', 2);
+        var pBuffer = this.addPlace(350, 160, 'buffer', 12);
+        var cAccepted = this.addPlace(350, 50, 'accepted', 1);
+        var cReady = this.addPlace(560, 260, 'ready', 3);
 
-function fireTransition(t, sec) {
+        var pProduce = this.addTransition(50, 160, 'produce');
+        var pSend = this.addTransition(270, 160, 'send');
+        var cAccept = this.addTransition(470, 160, 'accept');
+        var cConsume = this.addTransition(680, 160, 'consume');
 
-    var inbound = graph.getConnectedLinks(t, { inbound: true });
-    var outbound = graph.getConnectedLinks(t, { outbound: true });
+        this.addLink(pProduce, pReady);
+        this.addLink(pReady, pSend);
+        this.addLink(pSend, pIdle);
+        this.addLink(pIdle, pProduce);
+        this.addLink(pSend, pBuffer);
+        this.addLink(pBuffer, cAccept);
+        this.addLink(cAccept, cAccepted);
+        this.addLink(cAccepted, cConsume);
+        this.addLink(cConsume, cReady);
+        this.addLink(cReady, cAccept);
 
-    var placesBefore = _.map(inbound, function(link) { return graph.getCell(link.get('source').id); });
-    var placesAfter = _.map(outbound, function(link) { return graph.getCell(link.get('target').id); });
+        this.model.get('transitions').push(pProduce, pSend, cAccept, cConsume);
 
-    var isFirable = true;
-    _.each(placesBefore, function(p) { if (p.get('tokens') == 0) isFirable = false; });
+        var simulationId = this.simulate();
 
-    if (isFirable) {
+    },
 
-        _.each(placesBefore, function(p) {
-            // Let the execution finish before adjusting the value of tokens. So that we can loop over all transitions
-            // and call fireTransition() on the original number of tokens.
-            _.defer(function() { p.set('tokens', p.get('tokens') - 1); });
-            var link = _.find(inbound, function(l) { return l.get('source').id === p.id; });
-            paper.findViewByModel(link).sendToken(V('circle', { r: 5, fill: 'red' }).node, sec * 1000);
+    stopSimulation: function (simulationId) {
+        clearInterval(simulationId);
+    },
 
+    _fireTransition: function (t, sec) {
+        var inbound = this.model.getConnectedLinks(t, {inbound: true});
+        var outbound = this.model.getConnectedLinks(t, {outbound: true});
+
+        var placesBefore = _.map(inbound, function (link) {
+            return this.model.getCell(link.get('source').id);
+        }, this);
+        var placesAfter = _.map(outbound, function (link) {
+            return this.model.getCell(link.get('target').id);
+        }, this);
+
+        var isFirable = true;
+        _.each(placesBefore, function (p) {
+            if (p.get('tokens') == 0) isFirable = false;
         });
 
-        _.each(placesAfter, function(p) {
-            var link = _.find(outbound, function(l) { return l.get('target').id === p.id; });
-            paper.findViewByModel(link).sendToken(V('circle', { r: 5, fill: 'red' }).node, sec * 1000, function() {
-                p.set('tokens', p.get('tokens') + 1);
-            });
+        if (isFirable) {
 
-        });
+            _.each(placesBefore, function (p) {
+                // Let the execution finish before adjusting the value of tokens. So that we can loop over all transitions
+                // and call fireTransition() on the original number of tokens.
+                _.defer(function () {
+                    p.set('tokens', p.get('tokens') - 1);
+                });
+                var link = _.find(inbound, function (l) {
+                    return l.get('source').id === p.id;
+                });
+                this.findViewByModel(link).sendToken(V('circle', {r: 5, fill: 'red'}).node, sec * 1000);
+
+            }, this);
+
+            _.each(placesAfter, function (p) {
+                var link = _.find(outbound, function (l) {
+                    return l.get('target').id === p.id;
+                });
+                this.findViewByModel(link).sendToken(V('circle', {
+                    r: 5,
+                    fill: 'red'
+                }).node, sec * 1000, function () {
+                    p.set('tokens', p.get('tokens') + 1);
+                });
+
+            }, this);
+        }
+    },
+
+    simulate: function () {
+        var transitions = this.model.get('transitions');
+
+        _.each(transitions, function (t) {
+            if (Math.random() < 0.7) this._fireTransition(t, 1);
+        }, this);
+
+        return setInterval(function () {
+            _.each(transitions, function (t) {
+                if (Math.random() < 0.7) this._fireTransition(t, 1);
+            }, this);
+        }.bind(this), 2000);
     }
-}
-
-function simulate() {
-    var transitions = [pProduce, pSend, cAccept, cConsume];
-    _.each(transitions, function(t) { if (Math.random() < 0.7) fireTransition(t, 1); });
-
-    return setInterval(function() {
-        _.each(transitions, function(t) { if (Math.random() < 0.7) fireTransition(t, 1); });
-    }, 2000);
-}
-
-function stopSimulation(simulationId) {
-    clearInterval(simulationId);
-}
-
-var simulationId = simulate();
+});

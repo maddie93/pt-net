@@ -1,4 +1,5 @@
 var SidebarView = require('../components/sidebar/views/sidebar');
+var GraphView = require('../components/content/views/graph');
 var joint = require('jointjs');
 var graph = joint.dia.Graph;
 
@@ -7,7 +8,7 @@ module.exports = Backbone.View.extend({
         sidebar: '#sidebar',
         content: '#content',
         template: function () {
-            return '<div id="app"><div id="sidebar"></div><div id="content"></div><div id="footer"></div></div>';
+            return '<div id="app"><div id="header"></div><div id="sidebar"></div><div id="content"></div><div id="footer"></div></div>';
         },
 
         initialize: function () {
@@ -17,115 +18,33 @@ module.exports = Backbone.View.extend({
 
         render: function () {
             this.$el.html(this.template());
-            this.graphModel = new graph;
             this.views = {
                 sidebar: new SidebarView({el: '#sidebar'}),
-                content: new joint.dia.Paper({
+                content: new GraphView({
                     el: '#content',
-                    width: 800,
+                    width: 1000,
                     height: 350,
                     gridSize: 10,
-                    perpendicularLinks: true,
-                    model: this.graphModel
+                    perpendicularLinks: true
                 })
+                /*
+                 content: new joint.dia.Paper({
+                 el: '#content',
+                 width: 1000,
+                 height: 350,
+                 gridSize: 10,
+                 perpendicularLinks: true,
+                 model: this.graphModel
+                 })
+                 */
             };
-
-            this.initsimulation();
 
             _.each(this.views, function (view) {
                 view.render();
             });
+
+            this.views.content.startSimulation();
             return this;
-        },
-
-        initsimulation: function () {
-            var paper = this.content;
-            var graph = this.graphModel;
-
-            var pn = joint.shapes.pn;
-
-            var pReady = new pn.Place({ position: { x: 140, y: 50 }, attrs: { '.label': { text: 'ready' }  }, tokens: 1 });
-            var pIdle = new pn.Place({ position: { x: 140, y: 260 }, attrs: { '.label': { text: 'idle' } }, tokens: 2 });
-            var buffer = new pn.Place({ position: { x: 350, y: 160 }, attrs: { '.label': { text: 'buffer' }  }, tokens: 12 });
-            var cAccepted = new pn.Place({ position: { x: 550, y: 50 }, attrs: { '.label': { text: 'accepted' }  }, tokens: 1 });
-            var cReady = new pn.Place({ position: { x: 560, y: 260 }, attrs: { '.label': { text: 'ready' }  }, tokens: 3 });
-
-            var pProduce = new pn.Transition({ position: { x: 50, y: 160 }, attrs: { '.label': { text: 'produce' }  } });
-            var pSend = new pn.Transition({ position: { x: 270, y: 160 }, attrs: { '.label': { text: 'send' }  } });
-            var cAccept = new pn.Transition({ position: { x: 470, y: 160 }, attrs: { '.label': { text: 'accept' }  } });
-            var cConsume = new pn.Transition({ position: { x: 680, y: 160 }, attrs: { '.label': { text: 'consume' }  } });
-
-            function link(a, b) {
-
-                return new pn.Link({
-                    source: { id: a.id, selector: '.root' },
-                    target: { id: b.id, selector: '.root' }
-                });
-            }
-
-            graph.addCell([ pReady, pIdle, buffer, cAccepted, cReady, pProduce, pSend, cAccept, cConsume ]);
-
-            graph.addCell([
-                link(pProduce, pReady),
-                link(pReady, pSend),
-                link(pSend, pIdle),
-                link(pIdle, pProduce),
-                link(pSend, buffer),
-                link(buffer, cAccept),
-                link(cAccept, cAccepted),
-                link(cAccepted, cConsume),
-                link(cConsume, cReady),
-                link(cReady, cAccept)
-            ]);
-
-
-            function fireTransition(t, sec) {
-
-                var inbound = graph.getConnectedLinks(t, { inbound: true });
-                var outbound = graph.getConnectedLinks(t, { outbound: true });
-
-                var placesBefore = _.map(inbound, function(link) { return graph.getCell(link.get('source').id); });
-                var placesAfter = _.map(outbound, function(link) { return graph.getCell(link.get('target').id); });
-
-                var isFirable = true;
-                _.each(placesBefore, function(p) { if (p.get('tokens') == 0) isFirable = false; });
-
-                if (isFirable) {
-
-                    _.each(placesBefore, function(p) {
-                        // Let the execution finish before adjusting the value of tokens. So that we can loop over all transitions
-                        // and call fireTransition() on the original number of tokens.
-                        _.defer(function() { p.set('tokens', p.get('tokens') - 1); });
-                        var link = _.find(inbound, function(l) { return l.get('source').id === p.id; });
-                        paper.findViewByModel(link).sendToken(V('circle', { r: 5, fill: 'red' }).node, sec * 1000);
-
-                    });
-
-                    _.each(placesAfter, function(p) {
-                        var link = _.find(outbound, function(l) { return l.get('target').id === p.id; });
-                        paper.findViewByModel(link).sendToken(V('circle', { r: 5, fill: 'red' }).node, sec * 1000, function() {
-                            p.set('tokens', p.get('tokens') + 1);
-                        });
-
-                    });
-                }
-            }
-
-            function simulate() {
-                var transitions = [pProduce, pSend, cAccept, cConsume];
-                _.each(transitions, function(t) { if (Math.random() < 0.7) fireTransition(t, 1); });
-
-                return setInterval(function() {
-                    _.each(transitions, function(t) { if (Math.random() < 0.7) fireTransition(t, 1); });
-                }, 2000);
-            }
-
-            function stopSimulation(simulationId) {
-                clearInterval(simulationId);
-            }
-
-            var simulationId = simulate();
         }
-
     }
 );

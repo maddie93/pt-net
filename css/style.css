@@ -1,32 +1,42 @@
-body,
 html {
-    margin: 20px 80px;
+    height: 100%;
+}
+
+body {
+    /*background: linear-gradient(#2D3033, #6C6E70) no-repeat;*/
+    background: #222222;
     padding: 0;
-    color: #000;
+    margin: 50px 80px;
 }
 
 #app {
-    background: #c9c;
+    align-items: stretch;
+    -webkit-box-shadow: 10px 10px 5px 0px rgba(0, 0, 0, 0.75);
+    -moz-box-shadow: 10px 10px 5px 0px rgba(0, 0, 0, 0.75);
+    box-shadow: 10px 10px 5px 0px rgba(0, 0, 0, 0.75);
+    display: flex;
+    margin: auto;
     max-width: 1000px;
-    border: 1px solid black;
-    border-collapse: collapse;
-    -webkit-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
-    -moz-box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
-    box-shadow: 10px 10px 5px 0px rgba(0,0,0,0.75);
+    flex-wrap: wrap;
 }
 
-#content {
-    border-left: 1px solid black;
-    margin-left: 250px;
-    background: #9c9;
+#header {
+    background: #333333;
+    height: 60px;
+    width: 100%;
 }
 
 #sidebar {
-    float: left;
-    display: flex
-    width: 250px;
+    background: #4472B9;
+    width: 20%;
+    /*height: 100%;*/
+}
+
+#content {
+    background: #FFF;
+    width:80%;
 }
 
 #footer {
-    clear: both;
+    /*clear: both;*/
 }
