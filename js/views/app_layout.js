@@ -8,7 +8,7 @@ module.exports = Backbone.View.extend({
         sidebar: '#sidebar',
         content: '#content',
         template: function () {
-            return '<div id="app"><div id="header"></div><div id="sidebar"></div><div id="content"></div><div id="footer"></div></div>';
+            return '<div id="app"><div id="header"><h1>Petri Nets Simulator</h1></div><div id="sidebar"></div><div id="content"></div><div id="footer"></div></div>';
         },
 
         initialize: function () {
@@ -27,16 +27,6 @@ module.exports = Backbone.View.extend({
                     gridSize: 10,
                     perpendicularLinks: true
                 })
-                /*
-                 content: new joint.dia.Paper({
-                 el: '#content',
-                 width: 1000,
-                 height: 350,
-                 gridSize: 10,
-                 perpendicularLinks: true,
-                 model: this.graphModel
-                 })
-                 */
             };
 
             _.each(this.views, function (view) {

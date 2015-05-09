@@ -7,6 +7,7 @@ body {
     background: #222222;
     padding: 0;
     margin: 50px 80px;
+    font-family: 'Droid Sans', serif;
 }
 
 #app {
@@ -26,15 +27,58 @@ body {
     width: 100%;
 }
 
+#header > h1 {
+    color: #9c9c9c;
+    height: 100%;
+    line-height: 60px;
+    margin: 0;
+    text-align: center;
+    text-shadow: #eeeeee;
+}
+
 #sidebar {
     background: #4472B9;
     width: 20%;
-    /*height: 100%;*/
+}
+
+#sidebar .toolbox {
+    background: white;
+    margin: auto;
+    margin-bottom: 10px;
+    padding: 10px;
+    width: 80%;
+}
+
+#sidebar > h1 {
+    margin: 0;
+    text-align: center;
+}
+
+.buttons > ul{
+    margin: 0 auto;
+    padding: 0;
+    list-style-type: none;
+}
+
+.buttons > ul > li {
+    text-align: center;
+}
+
+.buttons button {
+    background: #324b80;
+    border: none;
+    color: #fff;
+    cursor: pointer;
+    margin: 0 5px 5px 5px;
+    outline: none;
+    padding: 10px 0;
+    transition: all 0.3s;
+    width: 90%;
 }
 
 #content {
     background: #FFF;
-    width:80%;
+    width: 80%;
 }
 
 #footer {
