@@ -12,5 +12,21 @@ module.exports = GraphView.extend({
         options.perpendicularLinks = true;
 
         GraphView.prototype.initialize.call(this, options);
+
+        this._setupToolbox();
+    },
+
+    _setupToolbox: function () {
+        this.model.referentialPlace = this.addPlace(0, 30, 'place', 1);
+        this.model.referentialTransition = this.addTransition(80, 30, 'transition');
+        this.model.referentialLink = this.addUnconnectedLink({x: 120, y: 80}, {x: 150, y: 30});
+    },
+    
+    events: {
+        'click .root, .connection-wrap': 'newNodeClick'
+    },
+    
+    newNodeClick: function (event) {
+        EventBus.trigger('new:node', event);
     }
 });

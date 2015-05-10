@@ -11,7 +11,34 @@ module.exports = GraphView.extend({
         options.gridSize = 10;
         options.perpendicularLinks = true;
 
+        this.registerListeners();
+
         GraphView.prototype.initialize.call(this, options);
+    },
+
+    registerListeners: function () {
+        this.listenTo(EventBus, 'new:node', this.newNode);
+    },
+
+    newNode: function (event) {
+        var sx = 10, sy = 10,
+            connectionWidth = 30,
+            connectionHeight = 60;
+        var nodeName = event.target.localName;
+
+        switch (nodeName) {
+            case 'circle':
+                this.addPlace(sx, sy, 'place', 0);
+                break;
+            case 'rect':
+                this.addTransition(sx, sy, 'transition');
+                break;
+            case 'path':
+                var from = {x: sx, y: sy + connectionHeight};
+                var to = {x: sx + connectionWidth, y: sy};
+                this.addUnconnectedLink(from, to);
+                break;
+        }
     },
 
     startSimulation: function () {

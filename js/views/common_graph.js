@@ -32,6 +32,15 @@ module.exports = joint.dia.Paper.extend({
         return link;
     },
 
+    addUnconnectedLink: function (from, to) {
+        var link = new pn.Link({
+            source: from,
+            target: to
+        });
+        this.model.addCell(link);
+        return link;
+    },
+
     startSimulation: function () {
 
     },
