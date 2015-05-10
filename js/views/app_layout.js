@@ -13,20 +13,13 @@ module.exports = Backbone.View.extend({
 
         initialize: function () {
             this.views = {};
-            console.log("home initialize");
         },
 
         render: function () {
             this.$el.html(this.template());
             this.views = {
                 sidebar: new SidebarView({el: '#sidebar'}),
-                content: new GraphView({
-                    el: '#content',
-                    width: 1000,
-                    height: 350,
-                    gridSize: 10,
-                    perpendicularLinks: true
-                })
+                content: new GraphView({el: '#content'})
             };
 
             _.each(this.views, function (view) {
