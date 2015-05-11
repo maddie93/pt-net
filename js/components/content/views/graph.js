@@ -14,10 +14,15 @@ module.exports = GraphView.extend({
         this.registerListeners();
 
         GraphView.prototype.initialize.call(this, options);
+
+        this.initTest();
     },
 
     registerListeners: function () {
         this.listenTo(EventBus, 'new:node', this.newNode);
+        this.listenTo(EventBus, 'simulation:start', this.startSimulation);
+        this.listenTo(EventBus, 'simulation:stop', this.stopSimulation);
+        this.listenTo(EventBus, 'simulation:clear', this.clearGraph);
     },
 
     newNode: function (event) {
@@ -41,7 +46,7 @@ module.exports = GraphView.extend({
         }
     },
 
-    startSimulation: function () {
+    initTest: function () {
         var pReady = this.addPlace(140, 50, 'ready', 1);
         var pIdle = this.addPlace(140, 260, 'idle', 2);
         var pBuffer = this.addPlace(350, 160, 'buffer', 12);
@@ -65,8 +70,5 @@ module.exports = GraphView.extend({
         this.addLink(cReady, cAccept);
 
         this.model.get('transitions').push(pProduce, pSend, cAccept, cConsume);
-
-        var simulationId = this.simulate();
-
     }
 });

@@ -41,12 +41,31 @@ module.exports = joint.dia.Paper.extend({
         return link;
     },
 
-    startSimulation: function () {
-
+    clearGraph: function () {
+        //this.model.clear();
+        this.model.clear();
     },
 
-    stopSimulation: function (simulationId) {
+    startSimulation: function () {
+        var simulationId = this.model.get('simulationId');
+        if(!simulationId) {
+            simulationId = this.simulate();
+            this.model.set('simulationId', simulationId);
+        }
+    },
+
+    stopSimulation: function () {
+        var simulationId = this.model.get('simulationId');
         clearInterval(simulationId);
+        this.model.set('simulationId', null);
+    },
+
+    _fireTransitions: function () {
+        var transitions = this.model.get('transitions');
+
+        _.each(transitions, function (t) {
+            this._fireTransition(t, 1);
+        }, this);
     },
 
     _fireTransition: function (t, sec) {
@@ -96,16 +115,14 @@ module.exports = joint.dia.Paper.extend({
     },
 
     simulate: function () {
-        var transitions = this.model.get('transitions');
-
-        _.each(transitions, function (t) {
-            if (Math.random() < 0.7) this._fireTransition(t, 1);
-        }, this);
+        this._fireTransitions();
 
         return setInterval(function () {
-            _.each(transitions, function (t) {
-                if (Math.random() < 0.7) this._fireTransition(t, 1);
-            }, this);
+            this._fireTransitions()
         }.bind(this), 2000);
+    },
+
+    shouldSimulate: function () {
+        return this.model.get('shouldSimulate');
     }
 });

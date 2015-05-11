@@ -26,7 +26,6 @@ module.exports = Backbone.View.extend({
                 view.render();
             });
 
-            this.views.content.startSimulation();
             return this;
         }
     }
