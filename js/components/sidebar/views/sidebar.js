@@ -4,7 +4,18 @@ module.exports = Backbone.View.extend({
     nodesPanel: '#nodes',
     additionalPanel: '#additional',
     template: function () {
-        return '<h1>Nodes Toolbox</h1><div id="nodes" class="toolbox"></div><h1>Node Options</h1><div id="additional" class="toolbox"></div><div class="buttons"><ul><li><button id="simulation-start">Start simulation</button></li><li><button id="simulation-stop">Stop simulation</button></li><li><button id="simulation-clear">Clear view</button></li></ul></div>';
+        return '<h1>Nodes Toolbox</h1>'
+            +'<div id="nodes" class="toolbox"></div>'
+            +'<h1>Node Options</h1>'
+            +'<div id="additional" class="toolbox"></div>'
+            +'<div class="buttons"><ul>'
+            +'<li><button id="simulation-start">Start simulation</button></li>'
+            +'<li><button id="simulation-stop">Stop simulation</button></li>'
+            +'<li><button id="simulation-clear">Clear view</button></li>'
+            +'<li><button id="export">Export to file</button></li>'
+            +'<li><input type="file" id="file-input" />'
+            +'<button id="import">Read from file</button></li>'
+            +'</ul></div>';
     },
 
     initialize: function () {
@@ -14,7 +25,9 @@ module.exports = Backbone.View.extend({
     events: {
         'click #simulation-start': 'propagateStartSimulation',
         'click #simulation-stop': 'propagateStopSimulation',
-        'click #simulation-clear': 'propagateClearSimulationModel'
+        'click #simulation-clear': 'propagateClearSimulationModel',
+        'click #export': 'propagateExportToFile',
+        'click #import': 'propagateImportFromFile'
     },
 
     propagateStartSimulation: function(event) {
@@ -28,6 +41,14 @@ module.exports = Backbone.View.extend({
     propagateClearSimulationModel: function(event) {
         EventBus.trigger('simulation:clear', event);
 
+    },
+
+    propagateExportToFile: function(event) {
+        EventBus.trigger('io:export', event);
+    },
+
+    propagateImportFromFile: function(event) {
+        EventBus.trigger('io:import', event);
     },
 
     render: function () {

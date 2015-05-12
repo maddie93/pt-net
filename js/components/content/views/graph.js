@@ -5,6 +5,7 @@ var pn = joint.shapes.pn;
 var GraphView = require('../../../views/common_graph');
 
 module.exports = GraphView.extend({
+
     initialize: function (options) {
         options.width = 800;
         options.height = 600;
@@ -23,6 +24,8 @@ module.exports = GraphView.extend({
         this.listenTo(EventBus, 'simulation:start', this.startSimulation);
         this.listenTo(EventBus, 'simulation:stop', this.stopSimulation);
         this.listenTo(EventBus, 'simulation:clear', this.clearGraph);
+        this.listenTo(EventBus, 'io:export', this.exportToFile);
+        this.listenTo(EventBus, 'io:import', this.importFromFile);
     },
 
     newNode: function (event) {
@@ -70,5 +73,41 @@ module.exports = GraphView.extend({
         this.addLink(cReady, cAccept);
 
         this.model.get('transitions').push(pProduce, pSend, cAccept, cConsume);
+    },
+
+    exportToFile : function(){
+        console.log(JSON.stringify(this.model));
+        var jsonData = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.model));
+        var a         = document.createElement('a');
+        a.href        = jsonData;
+        a.target      = '_blank';
+        a.download    = 'pt.json';
+        document.body.appendChild(a);
+        a.click();
+    },
+
+    createGraphFromJSON : function(jsonstring){
+        this.clearGraph();
+        this.model.fromJSON(jsonstring);
+    },
+
+    importFromFile : function(){
+        try{
+            var f = document.getElementById('file-input').files[0];
+        }catch (err){
+            alert('Please choose a file first');
+        }
+        if(f){
+            var r = new FileReader()
+            var read;
+            var _this = this;
+            r.onload = function(e) {
+                read = e.target.result;
+                console.log("file read");
+                _this.createGraphFromJSON(JSON.parse(read));
+            }
+            r.readAsText(f);
+        }
+
     }
 });
