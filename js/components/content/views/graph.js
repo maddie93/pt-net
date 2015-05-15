@@ -109,5 +109,85 @@ module.exports = GraphView.extend({
             r.readAsText(f);
         }
 
+    },
+
+    createDInputMatrix : function(){
+    	var inMatrix = [];
+    	var inbound;
+    	var placesBefore;
+    	var x = 0;
+    	var transitions = this.model.get('transitions');
+    	var cells = this.model.get('cells').models;
+    	var len = 0;
+    	
+    	cells.forEach(function(entry) {
+    	            if(entry.attributes.type == "pn.Place") {
+    	                len++;
+    	            }
+    	        });
+    	for (var i = 0; i < transitions.length; i++) {
+    	    inMatrix[i] = [];
+    	    for (var j = 0; j < len; j++) {
+    	        inMatrix[i][j] = 0;
+    	    }
+    	}
+    	for(var i = 0; i < transitions.length; i++){
+    	    inbound = this.model.getConnectedLinks(transitions[i], {inbound: true});
+            placesBefore = _.map(inbound, function (link) {
+                        return this.model.getCell(link.get('source').id);
+                    }, this);
+    	    for(var j = 0; j < placesBefore.length; j++) {
+    	        inMatrix[x][placesBefore[j].attributes.z-1] = 1;
+    	    }
+    	    x++;
+    	}
+    	return inMatrix;
+    },
+
+    createDOutputMatrix : function(){
+        var outMatrix = [];
+    	var outbound;
+    	var placesAfter;
+    	var x = 0;
+    	var transitions = this.model.get('transitions');
+    	var cells = this.model.get('cells').models;
+    	var len = 0;
+
+    	cells.forEach(function(entry) {
+    	            if(entry.attributes.type == "pn.Place") {
+    	                len++;
+    	            }
+    	        });
+    	for (var i = 0; i < transitions.length; i++) {
+    	    outMatrix[i] = [];
+    	    for (var j = 0; j < len; j++) {
+    	        outMatrix[i][j] = 0;
+    	    }
+    	}
+    	for(var i = 0; i < transitions.length; i++){
+    	    outbound = this.model.getConnectedLinks(transitions[i], {outbound: true});
+            placesAfter = _.map(outbound, function (link) {
+                        return this.model.getCell(link.get('target').id);
+                    }, this);
+    	    for(var j = 0; j < placesAfter.length; j++) {
+    	        outMatrix[x][placesAfter[j].attributes.z-1] = 1;
+    	    }
+    	    x++;
+    	}
+    	return outMatrix;
+    },
+
+    createDMatrix : function(){
+        var outMatrix = this.createDOutputMatrix();
+        var inMatrix = this.createDInputMatrix();
+        var dMatrix = [];
+
+        for(var i = 0; i < outMatrix.length; i++){
+            dMatrix[i] = [];
+            for(var j = 0; j < outMatrix[0].length; j++){
+                dMatrix[i][j] = outMatrix[i][j] - inMatrix[i][j];
+            }
+        }
+        return dMatrix;
     }
 });
