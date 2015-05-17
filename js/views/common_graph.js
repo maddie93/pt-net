@@ -68,7 +68,7 @@ module.exports = joint.dia.Paper.extend({
 
         other = link.attributes[unchangedEnd];
         otherCell = this.model.getCell(other.id);
-        otherType = otherCell.get('type');
+        otherType = otherCell ? otherCell.get('type') : undefined;
 
         changedCell = this.model.getCell(changed[changedEnd].id);
         changedType = changedCell.get('type');
