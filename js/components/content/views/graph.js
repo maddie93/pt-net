@@ -10,7 +10,7 @@ module.exports = GraphView.extend({
         options.width = 800;
         options.height = 600;
         options.gridSize = 10;
-        options.perpendicularLinks = true;
+        options.perpendicularLinks = false;
 
         this.registerListeners();
 
