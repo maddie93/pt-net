@@ -48,22 +48,22 @@ module.exports = GraphView.extend({
     },
 
     newNode: function (event) {
-        var sx = 10, sy = 10,
-            connectionWidth = 30,
-            connectionHeight = 60;
+        var startX = 10, startY = 10,
+            connectionWidth = 50,
+            connectionHeight = 100;
         var nodeName = event.target.localName;
 
         switch (nodeName) {
             case 'circle':
-                this.addPlace(sx, sy, 'place', 0);
+                this.addPlace(startX, startY, 'place', 0);
                 break;
             case 'rect':
-                this.addTransition(sx, sy, 'transition');
+                this.addTransition(startX, startY, 'transition');
                 break;
             case 'path':
-                var from = {x: sx, y: sy + connectionHeight};
-                var to = {x: sx + connectionWidth, y: sy};
-                this.addUnconnectedLink(from, to);
+                var from = {x: startX, y: startY + connectionHeight};
+                var to = {x: startX + connectionWidth, y: startY};
+                this.addLink(from, to);
                 break;
         }
     },

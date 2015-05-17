@@ -9,6 +9,8 @@ module.exports = joint.dia.Paper.extend({
         this.model = new Graph({transitions: []});
         this._configure(options);
         joint.dia.Paper.prototype.initialize.call(this, options);
+
+        this.model.on('change:source change:target', this._changeLink, this);
     },
 
     addPlace: function (x, y, text, tokens) {
@@ -24,31 +26,73 @@ module.exports = joint.dia.Paper.extend({
     },
 
     addLink: function (a, b) {
+        if (a['id']) {
+            a = {id: a.id, selector: '.root'};
+        }
+        if (b['id']) {
+            b = {id: b.id, selector: '.root'};
+        }
         var link = new pn.Link({
-            source: {id: a.id, selector: '.root'},
-            target: {id: b.id, selector: '.root'}
+            source: a,
+            target: b
         });
         this.model.addCell(link);
         return link;
     },
 
-    addUnconnectedLink: function (from, to) {
-        var link = new pn.Link({
-            source: from,
-            target: to
-        });
-        this.model.addCell(link);
-        return link;
+    _changeLink: function (link) {
+        var changed = link.changed,
+            previousAttributes = link._previousAttributes,
+            shouldProhibitChange,
+            otherType,
+            otherCell,
+            other,
+            changedCell,
+            changedType,
+            unchangedEnd,
+            changedEnd;
+
+        if (!link['prevCords']) {
+            link.prevCords = {source: previousAttributes.source, target: previousAttributes.target};
+        }
+
+        if (changed['source'] && changed.source['id']) {
+            unchangedEnd = 'target';
+            changedEnd = 'source';
+        } else if (changed['target'] && changed.target['id']) {
+            unchangedEnd = 'source';
+            changedEnd = 'target';
+        } else {
+            return;
+        }
+
+        other = link.attributes[unchangedEnd];
+        otherCell = this.model.getCell(other.id);
+        otherType = otherCell.get('type');
+
+        changedCell = this.model.getCell(changed[changedEnd].id);
+        changedType = changedCell.get('type');
+
+        shouldProhibitChange = otherType === changedType;
+
+        if (shouldProhibitChange) {
+            var src = link.prevCords.source;
+            var tgt = link.prevCords.target;
+            link.remove();
+            this.addLink(src, tgt);
+        } else {
+            link.prevCords = {source: link.attributes.source, target: link.attributes.target};
+        }
+
     },
 
     clearGraph: function () {
-        //this.model.clear();
         this.model.clear();
     },
 
     startSimulation: function () {
         var simulationId = this.model.get('simulationId');
-        if(!simulationId) {
+        if (!simulationId) {
             simulationId = this.simulate();
             this.model.set('simulationId', simulationId);
         }
