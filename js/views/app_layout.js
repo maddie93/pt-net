@@ -7,6 +7,7 @@ module.exports = Backbone.View.extend({
         el: 'body',
         sidebar: '#sidebar',
         content: '#content',
+
         template: function () {
             return '<div id="app"><div id="header"><h1>Petri Nets Simulator</h1></div><div id="sidebar"></div><div id="content"></div><div id="footer"></div></div>';
         },

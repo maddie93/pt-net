@@ -15,8 +15,27 @@ module.exports = GraphView.extend({
         this.registerListeners();
 
         GraphView.prototype.initialize.call(this, options);
-
         this.initTest();
+
+        _.extend(this.events, GraphView.prototype.events);
+    },
+
+    events: {
+        'mouseup .Place': 'propagateSelectedPlace',
+        'mouseup .Transition': 'propagateSelectedTransition'
+    },
+
+    propagateSelectedPlace: function (event) {
+        this._triggerSelectionEvent('place', event);
+    },
+
+    propagateSelectedTransition: function (event) {
+        this._triggerSelectionEvent('transition', event);
+    },
+
+    _triggerSelectionEvent: function (nodeType, event) {
+        var cell = this.model.getCell(event.currentTarget.getAttribute('model-id'));
+        EventBus.trigger('selected:' + nodeType, cell);
     },
 
     registerListeners: function () {
@@ -75,116 +94,116 @@ module.exports = GraphView.extend({
         this.model.get('transitions').push(pProduce, pSend, cAccept, cConsume);
     },
 
-    exportToFile : function(){
+    exportToFile: function () {
         console.log(JSON.stringify(this.model));
         var jsonData = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.model));
-        var a         = document.createElement('a');
-        a.href        = jsonData;
-        a.target      = '_blank';
-        a.download    = 'pt.json';
+        var a = document.createElement('a');
+        a.href = jsonData;
+        a.target = '_blank';
+        a.download = 'pt.json';
         document.body.appendChild(a);
         a.click();
     },
 
-    createGraphFromJSON : function(jsonstring){
+    createGraphFromJSON: function (jsonstring) {
         this.clearGraph();
         this.model.fromJSON(jsonstring);
     },
 
-    importFromFile : function(){
-        try{
+    importFromFile: function () {
+        try {
             var f = document.getElementById('file-input').files[0];
-        }catch (err){
+        } catch (err) {
             alert('Please choose a file first');
         }
-        if(f){
-            var r = new FileReader()
+        if (f) {
+            var r = new FileReader();
             var read;
             var _this = this;
-            r.onload = function(e) {
+            r.onload = function (e) {
                 read = e.target.result;
                 console.log("file read");
                 _this.createGraphFromJSON(JSON.parse(read));
-            }
+            };
             r.readAsText(f);
         }
 
     },
 
-    createDInputMatrix : function(){
-    	var inMatrix = [];
-    	var inbound;
-    	var placesBefore;
-    	var x = 0;
-    	var transitions = this.model.get('transitions');
-    	var cells = this.model.get('cells').models;
-    	var len = 0;
-    	
-    	cells.forEach(function(entry) {
-    	            if(entry.attributes.type == "pn.Place") {
-    	                len++;
-    	            }
-    	        });
-    	for (var i = 0; i < transitions.length; i++) {
-    	    inMatrix[i] = [];
-    	    for (var j = 0; j < len; j++) {
-    	        inMatrix[i][j] = 0;
-    	    }
-    	}
-    	for(var i = 0; i < transitions.length; i++){
-    	    inbound = this.model.getConnectedLinks(transitions[i], {inbound: true});
+    createDInputMatrix: function () {
+        var inMatrix = [];
+        var inbound;
+        var placesBefore;
+        var x = 0;
+        var transitions = this.model.get('transitions');
+        var cells = this.model.get('cells').models;
+        var len = 0;
+
+        cells.forEach(function (entry) {
+            if (entry.attributes.type == "pn.Place") {
+                len++;
+            }
+        });
+        for (var i = 0; i < transitions.length; i++) {
+            inMatrix[i] = [];
+            for (var j = 0; j < len; j++) {
+                inMatrix[i][j] = 0;
+            }
+        }
+        for (var i = 0; i < transitions.length; i++) {
+            inbound = this.model.getConnectedLinks(transitions[i], {inbound: true});
             placesBefore = _.map(inbound, function (link) {
-                        return this.model.getCell(link.get('source').id);
-                    }, this);
-    	    for(var j = 0; j < placesBefore.length; j++) {
-    	        inMatrix[x][placesBefore[j].attributes.z-1] = 1;
-    	    }
-    	    x++;
-    	}
-    	return inMatrix;
+                return this.model.getCell(link.get('source').id);
+            }, this);
+            for (var j = 0; j < placesBefore.length; j++) {
+                inMatrix[x][placesBefore[j].attributes.z - 1] = 1;
+            }
+            x++;
+        }
+        return inMatrix;
     },
 
-    createDOutputMatrix : function(){
+    createDOutputMatrix: function () {
         var outMatrix = [];
-    	var outbound;
-    	var placesAfter;
-    	var x = 0;
-    	var transitions = this.model.get('transitions');
-    	var cells = this.model.get('cells').models;
-    	var len = 0;
+        var outbound;
+        var placesAfter;
+        var x = 0;
+        var transitions = this.model.get('transitions');
+        var cells = this.model.get('cells').models;
+        var len = 0;
 
-    	cells.forEach(function(entry) {
-    	            if(entry.attributes.type == "pn.Place") {
-    	                len++;
-    	            }
-    	        });
-    	for (var i = 0; i < transitions.length; i++) {
-    	    outMatrix[i] = [];
-    	    for (var j = 0; j < len; j++) {
-    	        outMatrix[i][j] = 0;
-    	    }
-    	}
-    	for(var i = 0; i < transitions.length; i++){
-    	    outbound = this.model.getConnectedLinks(transitions[i], {outbound: true});
+        cells.forEach(function (entry) {
+            if (entry.attributes.type == "pn.Place") {
+                len++;
+            }
+        });
+        for (var i = 0; i < transitions.length; i++) {
+            outMatrix[i] = [];
+            for (var j = 0; j < len; j++) {
+                outMatrix[i][j] = 0;
+            }
+        }
+        for (var i = 0; i < transitions.length; i++) {
+            outbound = this.model.getConnectedLinks(transitions[i], {outbound: true});
             placesAfter = _.map(outbound, function (link) {
-                        return this.model.getCell(link.get('target').id);
-                    }, this);
-    	    for(var j = 0; j < placesAfter.length; j++) {
-    	        outMatrix[x][placesAfter[j].attributes.z-1] = 1;
-    	    }
-    	    x++;
-    	}
-    	return outMatrix;
+                return this.model.getCell(link.get('target').id);
+            }, this);
+            for (var j = 0; j < placesAfter.length; j++) {
+                outMatrix[x][placesAfter[j].attributes.z - 1] = 1;
+            }
+            x++;
+        }
+        return outMatrix;
     },
 
-    createDMatrix : function(){
+    createDMatrix: function () {
         var outMatrix = this.createDOutputMatrix();
         var inMatrix = this.createDInputMatrix();
         var dMatrix = [];
 
-        for(var i = 0; i < outMatrix.length; i++){
+        for (var i = 0; i < outMatrix.length; i++) {
             dMatrix[i] = [];
-            for(var j = 0; j < outMatrix[0].length; j++){
+            for (var j = 0; j < outMatrix[0].length; j++) {
                 dMatrix[i][j] = outMatrix[i][j] - inMatrix[i][j];
             }
         }

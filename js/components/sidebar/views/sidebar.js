@@ -1,13 +1,14 @@
-var Toolbox = require('./toolbox');
+var ToolboxView = require('./toolbox');
+var NodeOptionsView = require('./node_options');
 
 module.exports = Backbone.View.extend({
     nodesPanel: '#nodes',
-    additionalPanel: '#additional',
+    nodeOptions: '#node-options',
     template: function () {
         return '<h1>Nodes Toolbox</h1>'
             +'<div id="nodes" class="toolbox"></div>'
             +'<h1>Node Options</h1>'
-            +'<div id="additional" class="toolbox"></div>'
+            +'<div id="node-options" class="toolbox"></div>'
             +'<div class="buttons"><ul>'
             +'<li><button id="simulation-start">Start simulation</button></li>'
             +'<li><button id="simulation-stop">Stop simulation</button></li>'
@@ -54,8 +55,8 @@ module.exports = Backbone.View.extend({
     render: function () {
         this.$el.html(this.template());
         this.views = {
-            nodesPanel: new Toolbox({el: '#nodes'})
-            //additionalPanel: new Toolbox({el: '#additional'})
+            nodesPanel: new ToolboxView({el: '#nodes'}),
+            nodeOptions: new NodeOptionsView({el: '#node-options'})
         };
 
         _.each(this.views, function (view) {
