@@ -23,6 +23,7 @@ module.exports = Backbone.View.extend({
             +'<li><input type="file" id="file-input" /></li>'
             +'<li><button id="import">Read from file</button></li>'
             +'</ul></div>'
+            +'<li><button id="matrix">Matrix > </button></li>'
             +'</ul></div>';
     },
 
@@ -39,8 +40,9 @@ module.exports = Backbone.View.extend({
         'click #import': 'propagateImportFromFile',
         'click #io': 'showOptions',
         'click #nodeop': 'toggleNodeOptions',
-        'click #simulation': 'toggleSimulationOptions'
-
+        'click #simulation': 'toggleSimulationOptions',
+        'click #matrix': 'propagateShowMatrix',
+        'click #closepopup' : 'closePopup'
     },
 
     propagateStartSimulation: function(event) {
@@ -68,6 +70,10 @@ module.exports = Backbone.View.extend({
         EventBus.trigger('io:import', event);
     },
 
+    propagateShowMatrix: function(event) {
+        EventBus.trigger('matrix:showmatrix', event);
+    },
+
     render: function () {
         this.$el.html(this.template());
         this.views = {
@@ -93,5 +99,8 @@ module.exports = Backbone.View.extend({
     },
     toggleSimulationOptions : function(){
         $('#simulation-options').toggle();
+    },
+    closePopup : function(){
+        $('.popup').remove();
     }
 });

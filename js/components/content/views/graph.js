@@ -4,6 +4,7 @@ var Graph = joint.dia.Graph;
 var pn = joint.shapes.pn;
 var GraphView = require('../../../views/common_graph');
 
+
 module.exports = GraphView.extend({
 
     initialize: function (options) {
@@ -47,6 +48,7 @@ module.exports = GraphView.extend({
         this.listenTo(EventBus, 'simulation:clear', this.clearGraph);
         this.listenTo(EventBus, 'io:export', this.exportToFile);
         this.listenTo(EventBus, 'io:import', this.importFromFile);
+        this.listenTo(EventBus, 'matrix:showmatrix', this.showMatrix);
     },
 
     newNode: function (event) {
@@ -214,5 +216,27 @@ module.exports = GraphView.extend({
             }
         }
         return dMatrix;
+    },
+
+    pretty2dMatrix: function(matrix){
+        return JSON.stringify(matrix).replace(/\[|\]/g, '<br />').replace(/,/g, '&nbsp;&nbsp;');
+    },
+
+    showMatrix: function(){
+        if ($('#matrix-popup').length){
+            $('#matrix-popup').remove();
+            $('button#matrix').html('Matrix > ');
+        }else{
+            var outMatrix = this.createDOutputMatrix();
+            var inMatrix = this.createDInputMatrix();
+            var dMatrix = this.createDMatrix();
+            var inMatrixHTML = '<div id="inmatrix" class="matrix"><h3>Input Matrix</h3>'+this.pretty2dMatrix(inMatrix)+'</div>';
+            var outMatrixHTML = '<div id="outmatrix" class="matrix"><h3>Output Matrix</h3>'+this.pretty2dMatrix(outMatrix)+'</div>';
+            var dMatrixHTML = '<div id="dmatrix" class="matrix"><h3>Incidence Matrix</h3>'+this.pretty2dMatrix(dMatrix)+'</div>';
+            $('#content').prepend('<div id="matrix-popup" class="popup">'+inMatrixHTML+outMatrixHTML+dMatrixHTML+'</div>');
+            $('button#matrix').html('Matrix < ');
+        }
+
     }
+
 });

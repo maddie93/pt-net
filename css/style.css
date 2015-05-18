@@ -111,6 +111,21 @@ button#remove{
 input#tokens{
     width: 30px;
 }
+
+#matrix-popup {
+    width: 800px;
+    height: 600px;
+    z-index: 99999;
+    background: white;
+    position: absolute;
+    overflow: auto;
+}
+.matrix {
+    display: block;
+    float: left;
+    margin-left: 50px;
+    padding: 0 10px;
+}
 #footer {
     /*clear: both;*/
 }
