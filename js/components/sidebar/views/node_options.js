@@ -5,6 +5,16 @@ module.exports = Backbone.View.extend({
     tagName: "ul",
     endingTemplate: '<li><button id="remove">Remove</button></li>',
 
+    events: {
+        'click button#remove': 'propagateRemoveNode'
+    },
+
+    propagateRemoveNode: function () {
+        EventBus.trigger('node:remove', this.nodeView.model);
+        this.nodeView = null;
+        this.render();
+    },
+
     template: function() {
         return this.endingTemplate;
     },
@@ -17,13 +27,11 @@ module.exports = Backbone.View.extend({
     newPlaceSelected: function (cell) {
         this.nodeView = new PlaceView({model: cell});
         this.render();
-        console.log('newPlaceSelected');
     },
 
     newTransitionSelected: function (cell) {
         this.nodeView = new TransitionView({model: cell});
         this.render();
-        console.log('newTransitionSelected');
     },
 
     render: function () {
@@ -31,6 +39,8 @@ module.exports = Backbone.View.extend({
             this.$el.html(this.nodeView.render().$el);
             //this.$el.append(this.nodeView.render().$el);
             this.$el.append(this.template());
+        } else {
+            this.$el.html("");
         }
         return this;
     }

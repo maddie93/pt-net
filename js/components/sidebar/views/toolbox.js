@@ -27,6 +27,6 @@ module.exports = GraphView.extend({
     },
     
     newNodeClick: function (event) {
-        EventBus.trigger('new:node', event);
+        EventBus.trigger('node:new', event);
     }
 });

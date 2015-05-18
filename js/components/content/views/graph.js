@@ -39,7 +39,8 @@ module.exports = GraphView.extend({
     },
 
     registerListeners: function () {
-        this.listenTo(EventBus, 'new:node', this.newNode);
+        this.listenTo(EventBus, 'node:new', this.newNode);
+        this.listenTo(EventBus, 'node:remove', this.removeNode);
         this.listenTo(EventBus, 'simulation:start', this.startSimulation);
         this.listenTo(EventBus, 'simulation:stop', this.stopSimulation);
         this.listenTo(EventBus, 'simulation:next-step', this.nextStep);
@@ -67,6 +68,10 @@ module.exports = GraphView.extend({
                 this.addLink(from, to);
                 break;
         }
+    },
+
+    removeNode: function (node) {
+        this.model.get('cells').remove(node);
     },
 
     initTest: function () {
