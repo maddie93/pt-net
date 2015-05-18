@@ -54,17 +54,17 @@ body {
     text-align: center;
 }
 
-.buttons > ul{
+ul{
     margin: 0 auto;
     padding: 0;
     list-style-type: none;
 }
 
-.buttons > ul > li {
+ul > li {
     text-align: center;
 }
 
-.buttons button {
+.buttons button, li button {
     background: #324b80;
     border: none;
     color: #fff;
@@ -80,7 +80,37 @@ body {
     background: #FFF;
     width: 80%;
 }
+ul, li {
+    list-style-type: none;
+}
 
+#iomenu li button, #simulation-options li button {
+    background: #556E84;
+}
+
+#fileinput {
+    margin: 10px;
+}
+
+button#remove{
+    background: #b90020;
+    padding: 5px;
+    margin: 10px;
+}
+#node-options {
+    background: rgb(220, 238, 255) !important;
+}
+#node-options h3{
+    border-bottom: 1px solid black;
+    margin: 0 0 10px 0;
+}
+#node-options li {
+    text-align: left;
+    font-size: 12px;
+}
+input#tokens{
+    width: 30px;
+}
 #footer {
     /*clear: both;*/
 }

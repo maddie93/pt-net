@@ -7,16 +7,22 @@ module.exports = Backbone.View.extend({
     template: function () {
         return '<h1>Nodes Toolbox</h1>'
             +'<div id="nodes" class="toolbox"></div>'
-            +'<h1>Node Options</h1>'
-            +'<div id="node-options" class="toolbox"></div>'
             +'<div class="buttons"><ul>'
+            +'<li><button id="nodeop">Node options</button></li>'
+            +'<div id="node-options" class="toolbox"></div>'
+            +'<li><button id="simulation">Simulation > </button></li>'
+            +'<div id="simulation-options"><ul>'
             +'<li><button id="simulation-start">Start simulation</button></li>'
             +'<li><button id="simulation-stop">Stop simulation</button></li>'
             +'<li><button id="simulation-next-step">Next Step</button></li>'
+            +'</ul></div>'
             +'<li><button id="simulation-clear">Clear view</button></li>'
+            +'<li><button id="io">Import/Export > </button></li>'
+            +'<div id="iomenu"><ul>'
             +'<li><button id="export">Export to file</button></li>'
-            +'<li><input type="file" id="file-input" />'
-            +'<button id="import">Read from file</button></li>'
+            +'<li><input type="file" id="file-input" /></li>'
+            +'<li><button id="import">Read from file</button></li>'
+            +'</ul></div>'
             +'</ul></div>';
     },
 
@@ -30,7 +36,11 @@ module.exports = Backbone.View.extend({
         'click #simulation-next-step': 'propagateNextStep',
         'click #simulation-clear': 'propagateClearSimulationModel',
         'click #export': 'propagateExportToFile',
-        'click #import': 'propagateImportFromFile'
+        'click #import': 'propagateImportFromFile',
+        'click #io': 'showOptions',
+        'click #nodeop': 'toggleNodeOptions',
+        'click #simulation': 'toggleSimulationOptions'
+
     },
 
     propagateStartSimulation: function(event) {
@@ -69,6 +79,19 @@ module.exports = Backbone.View.extend({
             view.render();
         });
 
+        $('#iomenu').hide();
+        $('#node-options').hide();
+        $('#simulation-options').hide();
+
         return this;
+    },
+    showOptions: function(){
+        $('#iomenu').toggle();
+    },
+    toggleNodeOptions: function(){
+        $('#node-options').toggle();
+    },
+    toggleSimulationOptions : function(){
+        $('#simulation-options').toggle();
     }
 });

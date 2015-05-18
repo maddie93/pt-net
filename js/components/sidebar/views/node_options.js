@@ -27,11 +27,13 @@ module.exports = Backbone.View.extend({
     newPlaceSelected: function (cell) {
         this.nodeView = new PlaceView({model: cell});
         this.render();
+        $('#node-options').show();
     },
 
     newTransitionSelected: function (cell) {
         this.nodeView = new TransitionView({model: cell});
         this.render();
+        $('#node-options').show();
     },
 
     render: function () {
