@@ -21,8 +21,8 @@ module.exports = GraphView.extend({
     },
 
     events: {
-        'mouseup .Place': 'propagateSelectedPlace',
-        'mouseup .Transition': 'propagateSelectedTransition'
+        'click .Place': 'propagateSelectedPlace',
+        'click .Transition': 'propagateSelectedTransition'
     },
 
     propagateSelectedPlace: function (event) {

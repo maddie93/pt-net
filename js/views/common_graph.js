@@ -25,7 +25,9 @@ module.exports = joint.dia.Paper.extend({
         return transition;
     },
 
-    addLink: function (a, b) {
+    addLink: function (a, b, labelSrc, labelDst) {
+        labelSrc = labelSrc || '1';
+        labelDst = labelDst || '1';
         if (a['id']) {
             a = {id: a.id, selector: '.root'};
         }
@@ -35,6 +37,18 @@ module.exports = joint.dia.Paper.extend({
         var link = new pn.Link({
             source: a,
             target: b
+        });
+        link.label(0, {
+            position: 0.1,
+            attrs: {
+                text: {text: labelSrc}
+            }
+        });
+        link.label(1, {
+            position: 0.9,
+            attrs: {
+                text: {text: labelSrc}
+            }
         });
         this.model.addCell(link);
         return link;
