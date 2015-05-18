@@ -3,7 +3,7 @@ var TransitionView = require('./node_options/transition');
 
 module.exports = Backbone.View.extend({
     tagName: "ul",
-    endingTemplate: '<li><button id="close">Close</button></li>',
+    endingTemplate: '<li><button id="remove">Remove</button></li>',
 
     template: function() {
         return this.endingTemplate;

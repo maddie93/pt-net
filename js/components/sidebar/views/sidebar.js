@@ -12,6 +12,7 @@ module.exports = Backbone.View.extend({
             +'<div class="buttons"><ul>'
             +'<li><button id="simulation-start">Start simulation</button></li>'
             +'<li><button id="simulation-stop">Stop simulation</button></li>'
+            +'<li><button id="simulation-next-step">Next Step</button></li>'
             +'<li><button id="simulation-clear">Clear view</button></li>'
             +'<li><button id="export">Export to file</button></li>'
             +'<li><input type="file" id="file-input" />'
@@ -26,6 +27,7 @@ module.exports = Backbone.View.extend({
     events: {
         'click #simulation-start': 'propagateStartSimulation',
         'click #simulation-stop': 'propagateStopSimulation',
+        'click #simulation-next-step': 'propagateNextStep',
         'click #simulation-clear': 'propagateClearSimulationModel',
         'click #export': 'propagateExportToFile',
         'click #import': 'propagateImportFromFile'
@@ -37,6 +39,10 @@ module.exports = Backbone.View.extend({
 
     propagateStopSimulation: function(event) {
         EventBus.trigger('simulation:stop', event);
+    },
+
+    propagateNextStep: function(event) {
+        EventBus.trigger('simulation:next-step', event);
     },
 
     propagateClearSimulationModel: function(event) {

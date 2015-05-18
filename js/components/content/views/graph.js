@@ -42,6 +42,7 @@ module.exports = GraphView.extend({
         this.listenTo(EventBus, 'new:node', this.newNode);
         this.listenTo(EventBus, 'simulation:start', this.startSimulation);
         this.listenTo(EventBus, 'simulation:stop', this.stopSimulation);
+        this.listenTo(EventBus, 'simulation:next-step', this.nextStep);
         this.listenTo(EventBus, 'simulation:clear', this.clearGraph);
         this.listenTo(EventBus, 'io:export', this.exportToFile);
         this.listenTo(EventBus, 'io:import', this.importFromFile);

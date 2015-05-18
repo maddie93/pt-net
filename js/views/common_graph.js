@@ -5,7 +5,7 @@ var pn = joint.shapes.pn;
 
 module.exports = joint.dia.Paper.extend({
     initialize: function (options) {
-        _.bindAll(this, 'addTransition', 'addPlace', 'addLink', 'startSimulation', 'stopSimulation', '_fireTransition', 'simulate');
+        _.bindAll(this, 'addTransition', 'addPlace', 'addLink', 'startSimulation', 'stopSimulation', 'nextStep', '_fireTransition', 'simulate');
         this.model = new Graph({transitions: []});
         this._configure(options);
         joint.dia.Paper.prototype.initialize.call(this, options);
@@ -116,6 +116,11 @@ module.exports = joint.dia.Paper.extend({
         var simulationId = this.model.get('simulationId');
         clearInterval(simulationId);
         this.model.set('simulationId', null);
+    },
+
+    nextStep: function () {
+        this.startSimulation();
+        this.stopSimulation();
     },
 
     _fireTransitions: function () {
