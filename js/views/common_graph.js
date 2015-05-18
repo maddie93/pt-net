@@ -22,6 +22,7 @@ module.exports = joint.dia.Paper.extend({
     addTransition: function (x, y, text) {
         var transition = new pn.Transition({position: {x: x, y: y}, attrs: {'.label': {text: text}}});
         this.model.addCell(transition);
+        this.model.get('transitions').push(transition);
         return transition;
     },
 

@@ -97,7 +97,7 @@ module.exports = GraphView.extend({
         this.addLink(cConsume, cReady);
         this.addLink(cReady, cAccept);
 
-        this.model.get('transitions').push(pProduce, pSend, cAccept, cConsume);
+        //this.model.get('transitions').push(pProduce, pSend, cAccept, cConsume);
     },
 
     exportToFile: function () {
