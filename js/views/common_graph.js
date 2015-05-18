@@ -153,9 +153,9 @@ module.exports = joint.dia.Paper.extend({
             _.each(placesBefore, function (p) {
                 // Let the execution finish before adjusting the value of tokens. So that we can loop over all transitions
                 // and call fireTransition() on the original number of tokens.
-                _.defer(function () {
+                //_.defer(function () {
                     p.set('tokens', p.get('tokens') - 1);
-                });
+                //});
                 var link = _.find(inbound, function (l) {
                     return l.get('source').id === p.id;
                 });
