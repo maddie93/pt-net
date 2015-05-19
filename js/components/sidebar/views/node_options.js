@@ -13,6 +13,7 @@ module.exports = Backbone.View.extend({
         EventBus.trigger('node:remove', this.nodeView.model);
         this.nodeView = null;
         this.render();
+        $('#node-options').hide();
     },
 
     template: function() {

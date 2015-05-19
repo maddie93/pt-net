@@ -124,21 +124,62 @@ module.exports = joint.dia.Paper.extend({
         this.stopSimulation();
     },
 
+    unique : function(list) {
+        var result = [];
+        $.each(list, function(i, e) {
+            if ($.inArray(e, result) == -1) result.push(e);
+        });
+        return result;
+    },
+
+
     _fireTransitions: function () {
+        var placesRemove = [];
+        var placesAdd = [];
         var transitions = this.model.get('transitions');
 
         _.each(transitions, function (t) {
-            this._fireTransition(t, 1);
+            var temp = this._fireTransition(t, 1);
+            if(temp !== undefined){
+                if(temp['remove'] !== undefined) {
+                    placesRemove = placesRemove.concat(temp['remove']);
+                }
+                if(temp['add'] !== undefined) {
+                    placesAdd = placesAdd.concat(temp['add']);
+                }
+            }
+
         }, this);
+
+        placesAdd = this.unique(placesAdd);
+        placesRemove = this.unique(placesRemove);
+        console.log('add');
+        console.log(placesAdd);
+        console.log('remove');
+        console.log(placesRemove);
+
+        setTimeout(function() {
+            _.each(placesRemove, function (p) {
+                p.set('tokens', p.get('tokens') - 1);
+            }, this);
+        }, 1000);
+        setTimeout(function(){
+            _.each(placesAdd, function(p){
+                p.set('tokens', p.get('tokens') + 1);
+            },this);
+        }, 1000);
     },
 
     _fireTransition: function (t, sec) {
         var inbound = this.model.getConnectedLinks(t, {inbound: true});
         var outbound = this.model.getConnectedLinks(t, {outbound: true});
 
+
         var placesBefore = _.map(inbound, function (link) {
             return this.model.getCell(link.get('source').id);
         }, this);
+
+
         var placesAfter = _.map(outbound, function (link) {
             return this.model.getCell(link.get('target').id);
         }, this);
@@ -147,15 +188,13 @@ module.exports = joint.dia.Paper.extend({
         _.each(placesBefore, function (p) {
             if (p.get('tokens') == 0) isFirable = false;
         });
+        var placesToRemoveTokens = [];
+        var placesToAddTokens = [];
 
         if (isFirable) {
 
             _.each(placesBefore, function (p) {
-                // Let the execution finish before adjusting the value of tokens. So that we can loop over all transitions
-                // and call fireTransition() on the original number of tokens.
-                //_.defer(function () {
-                    p.set('tokens', p.get('tokens') - 1);
-                //});
+                placesToRemoveTokens.push(p);
                 var link = _.find(inbound, function (l) {
                     return l.get('source').id === p.id;
                 });
@@ -170,11 +209,15 @@ module.exports = joint.dia.Paper.extend({
                 this.findViewByModel(link).sendToken(V('circle', {
                     r: 5,
                     fill: 'red'
-                }).node, sec * 1000, function () {
-                    p.set('tokens', p.get('tokens') + 1);
-                });
-
+                }).node, sec * 1000);
+                placesToAddTokens.push(p);
             }, this);
+            var returnPlaces = {}
+            returnPlaces['remove'] = placesToRemoveTokens;
+            returnPlaces['add'] = placesToAddTokens;
+            console.log(returnPlaces);
+            return returnPlaces;
+
         }
     },
 

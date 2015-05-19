@@ -219,7 +219,7 @@ module.exports = GraphView.extend({
     },
 
     pretty2dMatrix: function(matrix){
-        return JSON.stringify(matrix).replace(/\[|\]/g, '<br />').replace(/,/g, '&nbsp;&nbsp;');
+        return JSON.stringify(matrix).replace(/\[\[/g, '<tr><td>').replace(/\]\]/g, '</td></tr>').replace(/\],\[/g, '</td></tr><tr><td>').replace(/,/g, '</td><td>');
     },
 
     showMatrix: function(){
@@ -230,9 +230,9 @@ module.exports = GraphView.extend({
             var outMatrix = this.createDOutputMatrix();
             var inMatrix = this.createDInputMatrix();
             var dMatrix = this.createDMatrix();
-            var inMatrixHTML = '<div id="inmatrix" class="matrix"><h3>Input Matrix</h3>'+this.pretty2dMatrix(inMatrix)+'</div>';
-            var outMatrixHTML = '<div id="outmatrix" class="matrix"><h3>Output Matrix</h3>'+this.pretty2dMatrix(outMatrix)+'</div>';
-            var dMatrixHTML = '<div id="dmatrix" class="matrix"><h3>Incidence Matrix</h3>'+this.pretty2dMatrix(dMatrix)+'</div>';
+            var inMatrixHTML = '<div id="inmatrix" class="matrix"><h3>Input Matrix</h3><table>'+this.pretty2dMatrix(inMatrix)+'</table></div>';
+            var outMatrixHTML = '<div id="outmatrix" class="matrix"><h3>Output Matrix</h3><table>'+this.pretty2dMatrix(outMatrix)+'</table></div>';
+            var dMatrixHTML = '<div id="dmatrix" class="matrix"><h3>Incidence Matrix</h3><table>'+this.pretty2dMatrix(dMatrix)+'</table></div>';
             $('#content').prepend('<div id="matrix-popup" class="popup">'+inMatrixHTML+outMatrixHTML+dMatrixHTML+'</div>');
             $('button#matrix').html('Matrix < ');
         }
