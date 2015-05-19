@@ -8,6 +8,7 @@ var GraphView = require('../../../views/common_graph');
 module.exports = GraphView.extend({
 
     initialize: function (options) {
+        _.bindAll(this, 'fetchChangedCell');
         options.width = 800;
         options.height = 600;
         options.gridSize = 10;
@@ -17,26 +18,20 @@ module.exports = GraphView.extend({
 
         GraphView.prototype.initialize.call(this, options);
         this.initTest();
-
-        _.extend(this.events, GraphView.prototype.events);
+        this.initializeGraphEvents();
     },
 
-    events: {
-        'click .Place': 'propagateSelectedPlace',
-        'click .Transition': 'propagateSelectedTransition'
+    initializeGraphEvents: function () {
+        var that = this;
+        _.extend(this.events, GraphView.prototype.events, {
+            'click .Place': EventBus.propagateGlobalEvent('selected:place', {cell: that.fetchChangedCell}),
+            'click .Transition': EventBus.propagateGlobalEvent('selected:transition', {cell: that.fetchChangedCell})
+        });
     },
 
-    propagateSelectedPlace: function (event) {
-        this._triggerSelectionEvent('place', event);
-    },
-
-    propagateSelectedTransition: function (event) {
-        this._triggerSelectionEvent('transition', event);
-    },
-
-    _triggerSelectionEvent: function (nodeType, event) {
+    fetchChangedCell: function (event) {
         var cell = this.model.getCell(event.currentTarget.getAttribute('model-id'));
-        EventBus.trigger('selected:' + nodeType, cell);
+        return cell;
     },
 
     registerListeners: function () {
@@ -250,22 +245,22 @@ module.exports = GraphView.extend({
         return dMatrix;
     },
 
-    pretty2dMatrix: function(matrix){
+    pretty2dMatrix: function (matrix) {
         return JSON.stringify(matrix).replace(/\[\[/g, '<tr><td>').replace(/\]\]/g, '</td></tr>').replace(/\],\[/g, '</td></tr><tr><td>').replace(/,/g, '</td><td>');
     },
 
-    showMatrix: function(){
-        if ($('#matrix-popup').length){
+    showMatrix: function () {
+        if ($('#matrix-popup').length) {
             $('#matrix-popup').remove();
             $('button#matrix').html('Matrix > ');
-        }else{
+        } else {
             var outMatrix = this.createDOutputMatrix();
             var inMatrix = this.createDInputMatrix();
             var dMatrix = this.createDMatrix();
-            var inMatrixHTML = '<div id="inmatrix" class="matrix"><h3>Input Matrix</h3><table>'+this.pretty2dMatrix(inMatrix)+'</table></div>';
-            var outMatrixHTML = '<div id="outmatrix" class="matrix"><h3>Output Matrix</h3><table>'+this.pretty2dMatrix(outMatrix)+'</table></div>';
-            var dMatrixHTML = '<div id="dmatrix" class="matrix"><h3>Incidence Matrix</h3><table>'+this.pretty2dMatrix(dMatrix)+'</table></div>';
-            $('#content').prepend('<div id="matrix-popup" class="popup">'+inMatrixHTML+outMatrixHTML+dMatrixHTML+'</div>');
+            var inMatrixHTML = '<div id="inmatrix" class="matrix"><h3>Input Matrix</h3><table>' + this.pretty2dMatrix(inMatrix) + '</table></div>';
+            var outMatrixHTML = '<div id="outmatrix" class="matrix"><h3>Output Matrix</h3><table>' + this.pretty2dMatrix(outMatrix) + '</table></div>';
+            var dMatrixHTML = '<div id="dmatrix" class="matrix"><h3>Incidence Matrix</h3><table>' + this.pretty2dMatrix(dMatrix) + '</table></div>';
+            $('#content').prepend('<div id="matrix-popup" class="popup">' + inMatrixHTML + outMatrixHTML + dMatrixHTML + '</div>');
             $('button#matrix').html('Matrix < ');
         }
 

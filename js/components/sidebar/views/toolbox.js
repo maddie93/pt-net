@@ -1,7 +1,3 @@
-//var V = require('vectorizer').V;
-//var joint = require('jointjs');
-//var Graph = joint.dia.Graph;
-//var pn = joint.shapes.pn;
 var GraphView = require('../../../views/common_graph');
 
 module.exports = GraphView.extend({
@@ -23,10 +19,6 @@ module.exports = GraphView.extend({
     },
     
     events: {
-        'click .root, .connection-wrap': 'newNodeClick'
-    },
-    
-    newNodeClick: function (event) {
-        EventBus.trigger('node:new', event);
+        'click .root, .connection-wrap': EventBus.propagateGlobalEvent('node:new')
     }
 });

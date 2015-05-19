@@ -32,46 +32,17 @@ module.exports = Backbone.View.extend({
     },
 
     events: {
-        'click #simulation-start': 'propagateStartSimulation',
-        'click #simulation-stop': 'propagateStopSimulation',
-        'click #simulation-next-step': 'propagateNextStep',
-        'click #simulation-clear': 'propagateClearSimulationModel',
-        'click #export': 'propagateExportToFile',
-        'click #import': 'propagateImportFromFile',
+        'click #simulation-start': EventBus.propagateGlobalEvent('simulation:start'),
+        'click #simulation-stop': EventBus.propagateGlobalEvent('simulation:stop'),
+        'click #simulation-next-step': EventBus.propagateGlobalEvent('simulation:next-step'),
+        'click #simulation-clear': EventBus.propagateGlobalEvent('simulation:clear'),
+        'click #export': EventBus.propagateGlobalEvent('io:export'),
+        'click #import': EventBus.propagateGlobalEvent('io:import'),
+        'click #matrix': EventBus.propagateGlobalEvent('matrix:showmatrix'),
         'click #io': 'showOptions',
         'click #nodeop': 'toggleNodeOptions',
         'click #simulation': 'toggleSimulationOptions',
-        'click #matrix': 'propagateShowMatrix',
         'click #closepopup' : 'closePopup'
-    },
-
-    propagateStartSimulation: function(event) {
-        EventBus.trigger('simulation:start', event);
-    },
-
-    propagateStopSimulation: function(event) {
-        EventBus.trigger('simulation:stop', event);
-    },
-
-    propagateNextStep: function(event) {
-        EventBus.trigger('simulation:next-step', event);
-    },
-
-    propagateClearSimulationModel: function(event) {
-        EventBus.trigger('simulation:clear', event);
-
-    },
-
-    propagateExportToFile: function(event) {
-        EventBus.trigger('io:export', event);
-    },
-
-    propagateImportFromFile: function(event) {
-        EventBus.trigger('io:import', event);
-    },
-
-    propagateShowMatrix: function(event) {
-        EventBus.trigger('matrix:showmatrix', event);
     },
 
     render: function () {

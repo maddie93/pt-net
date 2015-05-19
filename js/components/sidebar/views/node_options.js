@@ -21,18 +21,21 @@ module.exports = Backbone.View.extend({
     },
 
     initialize: function () {
-        this.listenTo(EventBus, "selected:place", this.newPlaceSelected);
-        this.listenTo(EventBus, "selected:transition", this.newTransitionSelected);
+        this.listenTo(EventBus, "selected:place selected:transition", this.newSelection);
     },
 
-    newPlaceSelected: function (cell) {
-        this.nodeView = new PlaceView({model: cell});
-        this.render();
-        $('#node-options').show();
-    },
+    newSelection: function (event) {
+        var cell = event.cell,
+            cellType = cell.get('type');
 
-    newTransitionSelected: function (cell) {
-        this.nodeView = new TransitionView({model: cell});
+        if (cellType === "pn.Place") {
+            this.nodeView = new PlaceView({model: cell});
+        } else if (cellType === "pn.Transition"){
+            this.nodeView = new TransitionView({model: cell});
+        } else {
+            return;
+        }
+
         this.render();
         $('#node-options').show();
     },
