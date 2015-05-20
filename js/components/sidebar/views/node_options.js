@@ -16,7 +16,7 @@ module.exports = Backbone.View.extend({
         $('#node-options').hide();
     },
 
-    template: function() {
+    template: function () {
         return this.endingTemplate;
     },
 
@@ -24,13 +24,12 @@ module.exports = Backbone.View.extend({
         this.listenTo(EventBus, "selected:place selected:transition", this.newSelection);
     },
 
-    newSelection: function (event) {
-        var cell = event.cell,
-            cellType = cell.get('type');
+    newSelection: function (cell) {
+        var cellType = cell.get('type');
 
         if (cellType === "pn.Place") {
             this.nodeView = new PlaceView({model: cell});
-        } else if (cellType === "pn.Transition"){
+        } else if (cellType === "pn.Transition") {
             this.nodeView = new TransitionView({model: cell});
         } else {
             return;

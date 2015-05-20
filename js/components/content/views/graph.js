@@ -8,30 +8,32 @@ var GraphView = require('../../../views/common_graph');
 module.exports = GraphView.extend({
 
     initialize: function (options) {
-        _.bindAll(this, 'fetchChangedCell');
+        _.extend(this.events, GraphView.prototype.events);
+        GraphView.prototype.initialize.call(this, options);
         options.width = 800;
         options.height = 600;
         options.gridSize = 10;
         options.perpendicularLinks = false;
-
         this.registerListeners();
-
-        GraphView.prototype.initialize.call(this, options);
         this.initTest();
-        this.initializeGraphEvents();
     },
 
-    initializeGraphEvents: function () {
-        var that = this;
-        _.extend(this.events, GraphView.prototype.events, {
-            'click .Place': EventBus.propagateGlobalEvent('selected:place', {cell: that.fetchChangedCell}),
-            'click .Transition': EventBus.propagateGlobalEvent('selected:transition', {cell: that.fetchChangedCell})
-        });
+    events: {
+        'click .Place': 'propagateSelectedPlace',
+        'click .Transition': 'propagateSelectedTransition'
     },
 
-    fetchChangedCell: function (event) {
+    propagateSelectedPlace: function (event) {
+        this._triggerSelectionEvent('selected:place', event);
+    },
+
+    propagateSelectedTransition: function (event) {
+        this._triggerSelectionEvent('selected:transition', event);
+    },
+
+    _triggerSelectionEvent: function (eventName, event) {
         var cell = this.model.getCell(event.currentTarget.getAttribute('model-id'));
-        return cell;
+        EventBus.trigger(eventName, cell);
     },
 
     registerListeners: function () {
