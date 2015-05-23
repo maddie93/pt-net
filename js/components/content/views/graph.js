@@ -3,9 +3,13 @@ var joint = require('jointjs');
 var Graph = joint.dia.Graph;
 var pn = joint.shapes.pn;
 var GraphView = require('../../../views/common_graph');
+var GraphLoader = require('../models/graph_loader');
+var MatrixAlgoritms = require('../models/matrix_algorithms');
 
 
 module.exports = GraphView.extend({
+    graphLoader: new GraphLoader,
+    matrixAlgorithms: new MatrixAlgoritms,
 
     initialize: function (options) {
         _.extend(this.events, GraphView.prototype.events);
@@ -20,7 +24,8 @@ module.exports = GraphView.extend({
 
     events: {
         'click .Place': 'propagateSelectedPlace',
-        'click .Transition': 'propagateSelectedTransition'
+        'click .Transition': 'propagateSelectedTransition',
+        'click .link': 'propagateSelectedLink'
     },
 
     propagateSelectedPlace: function (event) {
@@ -29,6 +34,10 @@ module.exports = GraphView.extend({
 
     propagateSelectedTransition: function (event) {
         this._triggerSelectionEvent('selected:transition', event);
+    },
+
+    propagateSelectedLink: function (event) {
+        this._triggerSelectionEvent('selected:link', event);
     },
 
     _triggerSelectionEvent: function (eventName, event) {
@@ -95,19 +104,18 @@ module.exports = GraphView.extend({
         this.addLink(cAccepted, cConsume);
         this.addLink(cConsume, cReady);
         this.addLink(cReady, cAccept);
-
-        //this.model.get('transitions').push(pProduce, pSend, cAccept, cConsume);
     },
 
     exportToFile: function () {
-        console.log(JSON.stringify(this.model));
-        var jsonData = 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(this.model));
-        var a = document.createElement('a');
-        a.href = jsonData;
-        a.target = '_blank';
-        a.download = 'pt.json';
-        document.body.appendChild(a);
-        a.click();
+        this.graphLoader.exportToFile(this.model);
+    },
+
+    importFromFile: function () {
+        this.graphLoader.importFromFile(function (e) {
+            read = e.target.result;
+            console.log("file read");
+            this.createGraphFromJSON(JSON.parse(read));
+        }.bind(this));
     },
 
     createGraphFromJSON: function (jsonstring) {
@@ -115,137 +123,6 @@ module.exports = GraphView.extend({
         this.model.fromJSON(jsonstring);
     },
 
-    importFromFile: function () {
-        try {
-            var f = document.getElementById('file-input').files[0];
-        } catch (err) {
-            alert('Please choose a file first');
-        }
-        if (f) {
-            var r = new FileReader();
-            var read;
-            var _this = this;
-            r.onload = function (e) {
-                read = e.target.result;
-                console.log("file read");
-                _this.createGraphFromJSON(JSON.parse(read));
-            };
-            r.readAsText(f);
-        }
-
-    },
-
-    createDInputMatrix: function () {
-        var inMatrix = [];
-        var inbound;
-        var placesBefore;
-        var x = 0;
-        var y = 0;
-        var transitions = [];
-        var cells = this.model.get('cells').models;
-        var places = [];
-
-        cells.forEach(function (entry) {
-            if (entry.attributes.type == "pn.Place") {
-                places[x++] = entry;
-            } else if (entry.attributes.type == "pn.Transition") {
-                transitions[y++] = entry;
-            }
-        });
-        x = 1;
-        inMatrix[0] = [];
-        for (var i = 1; i <= transitions.length; i++) {
-            inMatrix[i] = [];
-            for (var j = 1; j <= places.length; j++) {
-                inMatrix[i][j] = 0;
-            }
-        }
-        inMatrix[0][0] = '\\';
-        places.forEach(function (entry) {
-            inMatrix[0][x++] = entry.get('attrs')['.label'].text;
-        });
-        x = 1;
-        transitions.forEach(function (entry) {
-            inMatrix[x++][0] = entry.get('attrs')['.label'].text;
-        });
-        x = 1;
-        for (var i = 0; i < transitions.length; i++) {
-            inbound = this.model.getConnectedLinks(transitions[i], {inbound: true});
-            placesBefore = _.map(inbound, function (link) {
-                return this.model.getCell(link.get('source').id);
-            }, this);
-            for (var j = 0; j < placesBefore.length; j++) {
-                inMatrix[x][places.indexOf(placesBefore[j]) + 1] = 1;
-            }
-            x++;
-        }
-        return inMatrix;
-    },
-
-    createDOutputMatrix: function () {
-        var outMatrix = [];
-        var outbound;
-        var placesAfter;
-        var x = 0;
-        var y = 0;
-        var transitions = [];
-        var cells = this.model.get('cells').models;
-        var places = [];
-
-        cells.forEach(function (entry) {
-            if (entry.attributes.type == "pn.Place") {
-                places[x++] = entry;
-            } else if (entry.attributes.type == "pn.Transition") {
-                transitions[y++] = entry;
-            }
-        });
-        x = 1;
-        outMatrix[0] = [];
-        for (var i = 1; i <= transitions.length; i++) {
-            outMatrix[i] = [];
-            for (var j = 1; j <= places.length; j++) {
-                outMatrix[i][j] = 0;
-            }
-        }
-        outMatrix[0][0] = '\\';
-        places.forEach(function (entry) {
-            outMatrix[0][x++] = entry.get('attrs')['.label'].text;
-        });
-        x = 1;
-        transitions.forEach(function (entry) {
-            outMatrix[x++][0] = entry.get('attrs')['.label'].text;
-        });
-        x = 1;
-        for (var i = 0; i < transitions.length; i++) {
-            outbound = this.model.getConnectedLinks(transitions[i], {outbound: true});
-            placesAfter = _.map(outbound, function (link) {
-                return this.model.getCell(link.get('target').id);
-            }, this);
-            for (var j = 0; j < placesAfter.length; j++) {
-                outMatrix[x][places.indexOf(placesAfter[j]) + 1] = 1;
-            }
-            x++;
-        }
-        return outMatrix;
-    },
-
-    createDMatrix: function () {
-        var outMatrix = this.createDOutputMatrix();
-        var inMatrix = this.createDInputMatrix();
-        var dMatrix = [];
-
-        dMatrix[0] = inMatrix[0];
-        for (var i = 1; i < outMatrix.length; i++) {
-            dMatrix[i] = [];
-            for (var j = 1; j < outMatrix[0].length; j++) {
-                dMatrix[i][j] = outMatrix[i][j] - inMatrix[i][j];
-            }
-        }
-        for (var i = 1; i < inMatrix.length; i++) {
-            dMatrix[i][0] = inMatrix[i][0];
-        }
-        return dMatrix;
-    },
 
     pretty2dMatrix: function (matrix) {
         return JSON.stringify(matrix).replace(/\[\[/g, '<tr><td>').replace(/\]\]/g, '</td></tr>').replace(/\],\[/g, '</td></tr><tr><td>').replace(/,/g, '</td><td>');
@@ -256,9 +133,10 @@ module.exports = GraphView.extend({
             $('#matrix-popup').remove();
             $('button#matrix').html('Matrix > ');
         } else {
-            var outMatrix = this.createDOutputMatrix();
-            var inMatrix = this.createDInputMatrix();
-            var dMatrix = this.createDMatrix();
+            var outMatrix = this.matrixAlgorithms.createDOutputMatrix(this.model);
+            var inMatrix = this.matrixAlgorithms.createDInputMatrix(this.model);
+            var dMatrix = this.matrixAlgorithms.createDMatrix(this.model);
+
             var inMatrixHTML = '<div id="inmatrix" class="matrix"><h3>Input Matrix</h3><table>' + this.pretty2dMatrix(inMatrix) + '</table></div>';
             var outMatrixHTML = '<div id="outmatrix" class="matrix"><h3>Output Matrix</h3><table>' + this.pretty2dMatrix(outMatrix) + '</table></div>';
             var dMatrixHTML = '<div id="dmatrix" class="matrix"><h3>Incidence Matrix</h3><table>' + this.pretty2dMatrix(dMatrix) + '</table></div>';
