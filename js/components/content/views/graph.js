@@ -1,11 +1,6 @@
-var V = require('vectorizer').V;
-var joint = require('jointjs');
-var Graph = joint.dia.Graph;
-var pn = joint.shapes.pn;
 var GraphView = require('../../../views/common_graph');
 var GraphLoader = require('../models/graph_loader');
 var MatrixAlgoritms = require('../models/matrix_algorithms');
-
 
 module.exports = GraphView.extend({
     graphLoader: new GraphLoader,

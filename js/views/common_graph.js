@@ -2,6 +2,7 @@ var V = require('vectorizer').V;
 var joint = require('jointjs');
 var Graph = joint.dia.Graph;
 var pn = joint.shapes.pn;
+var Link = require('./common_link');
 
 module.exports = joint.dia.Paper.extend({
     initialize: function (options) {
@@ -11,48 +12,6 @@ module.exports = joint.dia.Paper.extend({
         joint.dia.Paper.prototype.initialize.call(this, options);
 
         this.model.on('change:source change:target', this._changeLink, this);
-    },
-
-    addPlace: function (x, y, text, tokens) {
-        var place = new pn.Place({position: {x: x, y: y}, attrs: {'.label': {text: text}}, tokens: tokens});
-        this.model.addCell(place);
-        return place;
-    },
-
-    addTransition: function (x, y, text) {
-        var transition = new pn.Transition({position: {x: x, y: y}, attrs: {'.label': {text: text}}});
-        this.model.addCell(transition);
-        this.model.get('transitions').push(transition);
-        return transition;
-    },
-
-    addLink: function (a, b, labelSrc, labelDst) {
-        labelSrc = labelSrc || '1';
-        labelDst = labelDst || '1';
-        if (a['id']) {
-            a = {id: a.id, selector: '.root'};
-        }
-        if (b['id']) {
-            b = {id: b.id, selector: '.root'};
-        }
-        var link = new pn.Link({
-            source: a,
-            target: b
-        });
-        link.label(0, {
-            position: 0.1,
-            attrs: {
-                text: {text: labelSrc}
-            }
-        });
-        link.label(1, {
-            position: 0.9,
-            attrs: {
-                text: {text: labelSrc}
-            }
-        });
-        this.model.addCell(link);
-        return link;
     },
 
     _changeLink: function (link) {
@@ -101,6 +60,50 @@ module.exports = joint.dia.Paper.extend({
 
     },
 
+    addPlace: function (x, y, text, tokens) {
+        var place = new pn.Place({position: {x: x, y: y}, attrs: {'.label': {text: text}}, tokens: tokens});
+        this.model.addCell(place);
+        return place;
+    },
+
+    addTransition: function (x, y, text) {
+        var transition = new pn.Transition({position: {x: x, y: y}, attrs: {'.label': {text: text}}});
+        this.model.addCell(transition);
+        this.model.get('transitions').push(transition);
+        return transition;
+    },
+
+    addLink: function (src, dst, labelSrc, labelDst) {
+        labelSrc = labelSrc != undefined ? labelSrc : '1';
+        labelDst = labelDst != undefined ? labelDst : '1';
+
+        if (src['id']) {
+            src = {id: src.id, selector: '.root'};
+        }
+        if (dst['id']) {
+            dst = {id: dst.id, selector: '.root'};
+        }
+
+        var link = new Link({
+            source: src,
+            target: dst
+        });
+
+        this._addLabelToLink(link, 0, 0.1, labelSrc);
+        this._addLabelToLink(link, 1, 0.9, labelDst);
+        this.model.addCell(link);
+        return link;
+    },
+
+    _addLabelToLink: function (link, index, position, text) {
+        link.label(index, {
+            position: position,
+            attrs: {
+                text: {text: text}
+            }
+        });
+    },
+
     clearGraph: function () {
         this.model.clear();
     },
@@ -124,9 +127,9 @@ module.exports = joint.dia.Paper.extend({
         this.stopSimulation();
     },
 
-    unique : function(list) {
+    unique: function (list) {
         var result = [];
-        $.each(list, function(i, e) {
+        $.each(list, function (i, e) {
             if ($.inArray(e, result) == -1) result.push(e);
         });
         return result;
@@ -140,11 +143,11 @@ module.exports = joint.dia.Paper.extend({
 
         _.each(transitions, function (t) {
             var temp = this._fireTransition(t, 1);
-            if(temp !== undefined){
-                if(temp['remove'] !== undefined) {
+            if (temp !== undefined) {
+                if (temp['remove'] !== undefined) {
                     placesRemove = placesRemove.concat(temp['remove']);
                 }
-                if(temp['add'] !== undefined) {
+                if (temp['add'] !== undefined) {
                     placesAdd = placesAdd.concat(temp['add']);
                 }
             }
@@ -158,15 +161,15 @@ module.exports = joint.dia.Paper.extend({
         console.log('remove');
         console.log(placesRemove);
 
-        setTimeout(function() {
+        setTimeout(function () {
             _.each(placesRemove, function (p) {
                 p.set('tokens', p.get('tokens') - 1);
             }, this);
         }, 1000);
-        setTimeout(function(){
-            _.each(placesAdd, function(p){
+        setTimeout(function () {
+            _.each(placesAdd, function (p) {
                 p.set('tokens', p.get('tokens') + 1);
-            },this);
+            }, this);
         }, 1000);
     },
 
@@ -212,7 +215,7 @@ module.exports = joint.dia.Paper.extend({
                 }).node, sec * 1000);
                 placesToAddTokens.push(p);
             }, this);
-            var returnPlaces = {}
+            var returnPlaces = {};
             returnPlaces['remove'] = placesToRemoveTokens;
             returnPlaces['add'] = placesToAddTokens;
             console.log(returnPlaces);

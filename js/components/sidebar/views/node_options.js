@@ -1,5 +1,6 @@
 var PlaceView = require('./node_options/place');
 var TransitionView = require('./node_options/transition');
+var LinkView = require('./node_options/link');
 
 module.exports = Backbone.View.extend({
     tagName: "ul",
@@ -21,7 +22,7 @@ module.exports = Backbone.View.extend({
     },
 
     initialize: function () {
-        this.listenTo(EventBus, "selected:place selected:transition", this.newSelection);
+        this.listenTo(EventBus, "selected:place selected:transition selected:link", this.newSelection);
     },
 
     newSelection: function (cell) {
@@ -31,6 +32,8 @@ module.exports = Backbone.View.extend({
             this.nodeView = new PlaceView({model: cell});
         } else if (cellType === "pn.Transition") {
             this.nodeView = new TransitionView({model: cell});
+        }  else if (cellType === "link") {
+            this.nodeView = new LinkView({model: cell});
         } else {
             return;
         }
@@ -42,7 +45,6 @@ module.exports = Backbone.View.extend({
     render: function () {
         if (this.nodeView) {
             this.$el.html(this.nodeView.render().$el);
-            //this.$el.append(this.nodeView.render().$el);
             this.$el.append(this.template());
         } else {
             this.$el.html("");
