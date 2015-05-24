@@ -77,22 +77,25 @@ module.exports = joint.dia.Paper.extend({
         labelSrc = labelSrc != undefined ? labelSrc : '1';
         labelDst = labelDst != undefined ? labelDst : '1';
 
-        if (src['id']) {
-            src = {id: src.id, selector: '.root'};
-        }
-        if (dst['id']) {
-            dst = {id: dst.id, selector: '.root'};
-        }
+        src = this._prepareIfEndpointIsNode(src);
+        dst = this._prepareIfEndpointIsNode(dst);
 
         var link = new Link({
             source: src,
             target: dst
         });
-
         this._addLabelToLink(link, 0, 0.1, labelSrc);
         this._addLabelToLink(link, 1, 0.9, labelDst);
+
         this.model.addCell(link);
         return link;
+    },
+
+    _prepareIfEndpointIsNode: function (endpoint) {
+        if (endpoint['id']) {
+            endpoint = {id: endpoint.id, selector: '.root'};
+        }
+        return endpoint;
     },
 
     _addLabelToLink: function (link, index, position, text) {

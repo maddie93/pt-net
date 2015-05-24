@@ -7,7 +7,6 @@ module.exports = pn.Link.extend({
     initialize: function (options) {
         _.extend(this.events, pn.Link.prototype.events);
         pn.Link.prototype.initialize.call(this, options);
-        this.on('remove', this.handleRemove);
     },
 
     setSourceCount: function (count) {

@@ -1,5 +1,5 @@
-module.exports = function MatrixAlgorithms() {
-    MatrixAlgorithms.prototype.createDInputMatrix = function (model) {
+module.exports = Backbone.Model.extend({
+    createDInputMatrix: function (model) {
         var inMatrix = [];
         var inbound;
         var placesBefore;
@@ -44,9 +44,9 @@ module.exports = function MatrixAlgorithms() {
             x++;
         }
         return inMatrix;
-    };
+    },
 
-    MatrixAlgorithms.prototype.createDOutputMatrix = function (model) {
+    createDOutputMatrix: function (model) {
         var outMatrix = [];
         var outbound;
         var placesAfter;
@@ -91,9 +91,9 @@ module.exports = function MatrixAlgorithms() {
             x++;
         }
         return outMatrix;
-    };
+    },
 
-    MatrixAlgorithms.prototype.createDMatrix = function (model) {
+    createDMatrix: function (model) {
         var outMatrix = this.createDOutputMatrix(model);
         var inMatrix = this.createDInputMatrix(model);
         var dMatrix = [];
@@ -110,4 +110,4 @@ module.exports = function MatrixAlgorithms() {
         }
         return dMatrix;
     }
-};
+});
