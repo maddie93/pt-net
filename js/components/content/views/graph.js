@@ -1,11 +1,12 @@
 var GraphView = require('../../../views/common_graph');
 var GraphLoader = require('../models/graph_loader');
 var MatrixAlgoritms = require('../models/matrix_algorithms');
+var GraphAlgoritms = require('../models/graph_alghoritms');
 
 module.exports = GraphView.extend({
     graphLoader: new GraphLoader,
     matrixAlgorithms: new MatrixAlgoritms,
-
+    graphAlgorithms: new GraphAlgoritms,
     initialize: function (options) {
         _.extend(this.events, GraphView.prototype.events);
         GraphView.prototype.initialize.call(this, options);
@@ -50,6 +51,7 @@ module.exports = GraphView.extend({
         this.listenTo(EventBus, 'io:export', this.exportToFile);
         this.listenTo(EventBus, 'io:import', this.importFromFile);
         this.listenTo(EventBus, 'matrix:showmatrix', this.showMatrix);
+        this.listenTo(EventBus, 'graph:showgraph', this.showGraph);
     },
 
     newNode: function (event) {
@@ -139,6 +141,8 @@ module.exports = GraphView.extend({
             $('button#matrix').html('Matrix < ');
         }
 
+    },
+    showGraph: function(){
+        console.log(this.graphAlgorithms.getActiveTransitions(this.model))
     }
-
 });

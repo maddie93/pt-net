@@ -24,6 +24,7 @@ module.exports = Backbone.View.extend({
             +'<li><button id="import">Read from file</button></li>'
             +'</ul></div>'
             +'<li><button id="matrix">Matrix > </button></li>'
+            +'<li><button id="graph">Graph > </button></li>'
             +'</ul></div>';
     },
 
@@ -39,6 +40,7 @@ module.exports = Backbone.View.extend({
         'click #export': EventBus.propagateGlobalEvent('io:export'),
         'click #import': EventBus.propagateGlobalEvent('io:import'),
         'click #matrix': EventBus.propagateGlobalEvent('matrix:showmatrix'),
+        'click #graph': EventBus.propagateGlobalEvent('graph:showgraph'),
         'click #io': 'showOptions',
         'click #nodeop': 'toggleNodeOptions',
         'click #simulation': 'toggleSimulationOptions',
