@@ -18,8 +18,6 @@ module.exports = Backbone.Model.extend({
         }
         if (f) {
             var r = new FileReader();
-            var read;
-            var _this = this;
             r.onload = readCallBack;
             r.readAsText(f);
         }

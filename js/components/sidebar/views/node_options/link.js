@@ -2,28 +2,20 @@ var OptionsBaseView = require('./options_base');
 
 module.exports = OptionsBaseView.extend({
     templateHTML: '<h3>Link</h3>'
-    + '<li><label for="inputCount">source count: </label><input id="inputCount" type="text" name="inputCount" value="{{inputCount}}"></li>'
-    + '<li><label for="outputCount">destination count: </label><input id="outputCount" type="text" name="outputCount" value="{{outputCount}}"></li>',
+    + '<li><label for="count">count: </label><input id="count" type="text" name="count" value="{{count}}"></li>',
 
     events: {
-        'keyup input#inputCount': 'onInputCountChange',
-        'keyup input#outputCount': 'onOutputCountChange'
+        "keyup input#count": 'onCountChange'
     },
 
-    onInputCountChange: function (e) {
+    onCountChange: function (e) {
         var value = e.target.value;
-        this.model.setSourceCount(value);
-    },
-
-    onOutputCountChange: function (e) {
-        var value = e.target.value;
-        this.model.setDestinationCount(value);
+        this.model.setCount(value);
     },
 
     prepareModel: function () {
         return {
-            inputCount: this.model.getSourceCount(),
-            outputCount: this.model.getDestinationCount()
+            count: this.model.getCount(),
         };
     }
 });

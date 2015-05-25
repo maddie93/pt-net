@@ -36,7 +36,7 @@ module.exports = Backbone.Model.extend({
         var active = true;
         for(var link in transition.inLinks){
             var place = model.getCell(link.attributes.source.id);
-            if(place.attributes.tokens<link.getSourceCount){
+            if(place.attributes.tokens<link.getCount){
                 active = false;
                 break;
             }

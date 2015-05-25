@@ -73,9 +73,8 @@ module.exports = joint.dia.Paper.extend({
         return transition;
     },
 
-    addLink: function (src, dst, labelSrc, labelDst) {
-        labelSrc = labelSrc != undefined ? labelSrc : '1';
-        labelDst = labelDst != undefined ? labelDst : '1';
+    addLink: function (src, dst, label) {
+        label = label != undefined ? label : '1';
 
         src = this._prepareIfEndpointIsNode(src);
         dst = this._prepareIfEndpointIsNode(dst);
@@ -84,9 +83,8 @@ module.exports = joint.dia.Paper.extend({
             source: src,
             target: dst
         });
-        this._addLabelToLink(link, 0, 0.1, labelSrc);
-        this._addLabelToLink(link, 1, 0.9, labelDst);
 
+        link.setCount(label);
         this.model.addCell(link);
         return link;
     },
@@ -96,15 +94,6 @@ module.exports = joint.dia.Paper.extend({
             endpoint = {id: endpoint.id, selector: '.root'};
         }
         return endpoint;
-    },
-
-    _addLabelToLink: function (link, index, position, text) {
-        link.label(index, {
-            position: position,
-            attrs: {
-                text: {text: text}
-            }
-        });
     },
 
     clearGraph: function () {
@@ -140,91 +129,137 @@ module.exports = joint.dia.Paper.extend({
 
 
     _fireTransitions: function () {
-        var placesRemove = [];
-        var placesAdd = [];
+        var placesWithCountRemove = [];
+        var placesWithCountAdd = [];
         var transitions = this.model.get('transitions');
 
         _.each(transitions, function (t) {
             var temp = this._fireTransition(t, 1);
             if (temp !== undefined) {
                 if (temp['remove'] !== undefined) {
-                    placesRemove = placesRemove.concat(temp['remove']);
+                    placesWithCountRemove = placesWithCountRemove.concat(temp['remove']);
                 }
                 if (temp['add'] !== undefined) {
-                    placesAdd = placesAdd.concat(temp['add']);
+                    placesWithCountAdd = placesWithCountAdd.concat(temp['add']);
                 }
             }
 
         }, this);
 
-        placesAdd = this.unique(placesAdd);
-        placesRemove = this.unique(placesRemove);
+        placesWithCountAdd = this.unique(placesWithCountAdd);
+        placesWithCountRemove = this.unique(placesWithCountRemove);
         console.log('add');
-        console.log(placesAdd);
+        console.log(placesWithCountAdd);
         console.log('remove');
-        console.log(placesRemove);
-
-        setTimeout(function () {
-            _.each(placesRemove, function (p) {
-                p.set('tokens', p.get('tokens') - 1);
-            }, this);
-        }, 1000);
-        setTimeout(function () {
-            _.each(placesAdd, function (p) {
-                p.set('tokens', p.get('tokens') + 1);
-            }, this);
-        }, 1000);
+        console.log(placesWithCountRemove);
     },
 
+
     _fireTransition: function (t, sec) {
-        var inbound = this.model.getConnectedLinks(t, {inbound: true});
-        var outbound = this.model.getConnectedLinks(t, {outbound: true});
+        var inbound = this.model.getConnectedLinks(t, {inbound: true}),
+            outbound = this.model.getConnectedLinks(t, {outbound: true}),
+            placesWithCountBefore = this._getPlacesWithTokenShift(inbound, 'source'),
+            placesWithCountAfter = this._getPlacesWithTokenShift(outbound, 'target');
 
-
-        var placesBefore = _.map(inbound, function (link) {
-            return this.model.getCell(link.get('source').id);
-        }, this);
-
-
-        var placesAfter = _.map(outbound, function (link) {
-            return this.model.getCell(link.get('target').id);
-        }, this);
-
-        var isFirable = true;
-        _.each(placesBefore, function (p) {
-            if (p.get('tokens') == 0) isFirable = false;
-        });
-        var placesToRemoveTokens = [];
-        var placesToAddTokens = [];
-
-        if (isFirable) {
-
-            _.each(placesBefore, function (p) {
-                placesToRemoveTokens.push(p);
-                var link = _.find(inbound, function (l) {
-                    return l.get('source').id === p.id;
-                });
-                this.findViewByModel(link).sendToken(V('circle', {r: 5, fill: 'red'}).node, sec * 1000);
-
-            }, this);
-
-            _.each(placesAfter, function (p) {
-                var link = _.find(outbound, function (l) {
-                    return l.get('target').id === p.id;
-                });
-                this.findViewByModel(link).sendToken(V('circle', {
-                    r: 5,
-                    fill: 'red'
-                }).node, sec * 1000);
-                placesToAddTokens.push(p);
-            }, this);
-            var returnPlaces = {};
-            returnPlaces['remove'] = placesToRemoveTokens;
-            returnPlaces['add'] = placesToAddTokens;
-            console.log(returnPlaces);
-            return returnPlaces;
-
+        if (this._isFireable(t, inbound)) {
+            this._substractTokensFromPredecessors(placesWithCountBefore, inbound);
+            this._addTokensToSuccessors(placesWithCountAfter, outbound);
+            return {
+                remove: _.pluck(placesWithCountBefore, 'place'),
+                add: _.pluck(placesWithCountAfter, 'place')
+            };
         }
+    },
+
+    _getPlacesWithTokenShift: function (links, linkEnd) {
+        return _.map(links, function (link) {
+            return {place: this.model.getCell(link.get(linkEnd).id), count: parseInt(link.getCount())};
+        }, this);
+    },
+
+    _isFireable: function (t, inbound) {
+        var placesWithLinksBefore = _.map(inbound, function (link) {
+            return {place: this.model.getCell(link.get('source').id), link: link};
+        }, this);
+
+        var isFireable = true;
+        _.each(placesWithLinksBefore, function (p) {
+            var place = p.place,
+                neededTokens = p.link.getCount();
+            if (place.get('tokens') < neededTokens) {
+                isFireable = false;
+            }
+        });
+        return isFireable;
+    },
+
+    _substractTokensFromPredecessors: function (placesWithCount, inbound) {
+        this._moveTokensForCollection(placesWithCount, 'source', inbound);
+    },
+
+    _addTokensToSuccessors: function (placesWithCount, outbound) {
+        this._moveTokensForCollection(placesWithCount, 'target', outbound);
+    },
+
+    _moveTokensForCollection: function (placesWithCount, linkEndType, collection) {
+        _.each(placesWithCount, function (placeWithCount) {
+            var place = placeWithCount.place,
+                count = placeWithCount.count,
+                link,
+                numberToMove;
+
+            link = _.find(collection, function (link) {
+                return link.get(linkEndType).id === place.id;
+            });
+
+            if (linkEndType === 'target') {
+                numberToMove = count;
+                this._sendToken(link, function(){
+                    place.set('tokens', place.get('tokens') + numberToMove)
+                });
+            }
+            else if (linkEndType === 'source') {
+                numberToMove = - count;
+                place.set('tokens', place.get('tokens') + numberToMove);
+                this._sendToken(link);
+            }
+
+        }, this);
+    },
+
+    _sendToken: function (link, callback) {
+        this.findViewByModel(link).sendToken(V('circle', {
+            r: 5,
+            fill: 'red'
+        }).node, 1 * 1000, callback);
+    },
+
+    _showActiveTransitions: function () {
+        var transitions = this.model.get('transitions');
+        var activeTransitions = [];
+        _.each(transitions, function (t) {
+            if (this._isFireable(t)) {
+                activeTransitions.push(t);
+            }
+
+        }, this);
+
+
+        console.log(activeTransitions);
+
+        _.each(activeTransitions, function (t) {
+            //t.setAttribute('fill', 'blue');
+
+            var attributes = t.get('attrs');
+            attributes['rect']['fill'] = 'green';
+            attributes['rect']['stroke'] = 'red';
+            t.unset('attrs');
+            t.set('attrs', attributes);
+            var id = t.get('id');
+
+            console.log(id);
+        }, this);
+
     },
 
     simulate: function () {

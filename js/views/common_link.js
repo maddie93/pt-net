@@ -9,32 +9,25 @@ module.exports = pn.Link.extend({
         pn.Link.prototype.initialize.call(this, options);
     },
 
-    setSourceCount: function (count) {
-        this._setLabelValue(0, count);
+    setCount: function (count) {
+        this._setLabelValue(count);
     },
 
-    getSourceCount: function () {
-        return this._getLabelValue(0);
+    getCount: function () {
+        return parseInt(this._getLabelValue());
     },
 
-    setDestinationCount: function (count) {
-        this._setLabelValue(1, count);
+    _setLabelValue: function(value) {
+        this.label(0, {
+            position: 0.5,
+            attrs: {
+                text: {text: value}
+            }
+        });
     },
 
-    getDestinationCount: function () {
-        return this._getLabelValue(1);
-    },
-
-    _setLabelValue: function(index, value) {
+    _getLabelValue: function () {
         var labels = this.get('labels');
-        var label = labels[index];
-        label.attrs.text.text = value;
-        this.unset('labels', {silent: true});
-        this.set('labels', labels);
-    },
-
-    _getLabelValue: function (index) {
-        var labels = this.get('labels');
-        return labels[index].attrs.text.text;
+        return labels[0].attrs.text.text;
     }
 });
