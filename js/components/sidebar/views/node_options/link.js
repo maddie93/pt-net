@@ -14,8 +14,9 @@ module.exports = OptionsBaseView.extend({
     },
 
     prepareModel: function () {
+        var tokenTransitionCount = this.model.getCount();
         return {
-            count: this.model.getCount(),
+            count: tokenTransitionCount
         };
     }
 });

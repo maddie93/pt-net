@@ -10,20 +10,14 @@ module.exports = OptionsBaseView.extend({
     },
 
     onTitleChange: function (e) {
-        var attributes = this.model.get('attrs');
         var val = $(e.currentTarget).val();
-        attributes['.label'].text = val;
-        this.model.unset('attrs', {silent: true});
-        this.model.set('attrs', attributes);
+        this.model.setLabel(val);
     },
 
     prepareModel: function () {
-        var model = this.model,
-            attributes = model.get('attrs');
-
+        var labelValue = this.model.getLabel();
         var preparedModel = {
-            tokens: model.get('tokens'),
-            title: attributes['.label'].text
+            title: labelValue
         };
         return preparedModel;
     }

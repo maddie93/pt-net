@@ -3,6 +3,8 @@ var joint = require('jointjs');
 var Graph = joint.dia.Graph;
 var pn = joint.shapes.pn;
 var Link = require('./common_link');
+var Place = require('./common_place');
+var Transition = require('./common_transition');
 
 module.exports = joint.dia.Paper.extend({
     initialize: function (options) {
@@ -61,13 +63,13 @@ module.exports = joint.dia.Paper.extend({
     },
 
     addPlace: function (x, y, text, tokens) {
-        var place = new pn.Place({position: {x: x, y: y}, attrs: {'.label': {text: text}}, tokens: tokens});
+        var place = new Place({position: {x: x, y: y}, attrs: {'.label': {text: text}}, tokens: tokens});
         this.model.addCell(place);
         return place;
     },
 
     addTransition: function (x, y, text) {
-        var transition = new pn.Transition({position: {x: x, y: y}, attrs: {'.label': {text: text}}});
+        var transition = new Transition({position: {x: x, y: y}, attrs: {'.label': {text: text}}});
         this.model.addCell(transition);
         this.model.get('transitions').push(transition);
         return transition;
@@ -133,14 +135,15 @@ module.exports = joint.dia.Paper.extend({
         var placesWithCountAdd = [];
         var transitions = this.model.get('transitions');
 
-        _.each(transitions, function (t) {
-            var temp = this._fireTransition(t, 1);
-            if (temp !== undefined) {
-                if (temp['remove'] !== undefined) {
-                    placesWithCountRemove = placesWithCountRemove.concat(temp['remove']);
+        _.each(transitions, function (transition) {
+            var placesToAddAndRemove = this._fireTransition(transition, 1);
+
+            if (placesToAddAndRemove) {
+                if (placesToAddAndRemove['remove']) {
+                    placesWithCountRemove = placesWithCountRemove.concat(placesToAddAndRemove['remove']);
                 }
-                if (temp['add'] !== undefined) {
-                    placesWithCountAdd = placesWithCountAdd.concat(temp['add']);
+                if (placesToAddAndRemove['add']) {
+                    placesWithCountAdd = placesWithCountAdd.concat(placesToAddAndRemove['add']);
                 }
             }
 
@@ -148,10 +151,6 @@ module.exports = joint.dia.Paper.extend({
 
         placesWithCountAdd = this.unique(placesWithCountAdd);
         placesWithCountRemove = this.unique(placesWithCountRemove);
-        console.log('add');
-        console.log(placesWithCountAdd);
-        console.log('remove');
-        console.log(placesWithCountRemove);
     },
 
 
@@ -186,7 +185,7 @@ module.exports = joint.dia.Paper.extend({
         _.each(placesWithLinksBefore, function (p) {
             var place = p.place,
                 neededTokens = p.link.getCount();
-            if (place.get('tokens') < neededTokens) {
+            if (place.getTokens() < neededTokens) {
                 isFireable = false;
             }
         });
@@ -205,22 +204,19 @@ module.exports = joint.dia.Paper.extend({
         _.each(placesWithCount, function (placeWithCount) {
             var place = placeWithCount.place,
                 count = placeWithCount.count,
-                link,
-                numberToMove;
+                link;
 
             link = _.find(collection, function (link) {
                 return link.get(linkEndType).id === place.id;
             });
 
             if (linkEndType === 'target') {
-                numberToMove = count;
                 this._sendToken(link, function(){
-                    place.set('tokens', place.get('tokens') + numberToMove)
+                    place.addTokens(count);
                 });
             }
             else if (linkEndType === 'source') {
-                numberToMove = - count;
-                place.set('tokens', place.get('tokens') + numberToMove);
+                place.subtractTokens(count);
                 this._sendToken(link);
             }
 
@@ -247,15 +243,9 @@ module.exports = joint.dia.Paper.extend({
 
         console.log(activeTransitions);
 
-        _.each(activeTransitions, function (t) {
-            //t.setAttribute('fill', 'blue');
-
-            var attributes = t.get('attrs');
-            attributes['rect']['fill'] = 'green';
-            attributes['rect']['stroke'] = 'red';
-            t.unset('attrs');
-            t.set('attrs', attributes);
-            var id = t.get('id');
+        _.each(activeTransitions, function (transition) {
+            transition.setActive();
+            var id = transition.get('id');
 
             console.log(id);
         }, this);
