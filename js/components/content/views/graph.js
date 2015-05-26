@@ -29,7 +29,8 @@ module.exports = GraphView.extend({
     },
 
     propagateSelectedTransition: function (event) {
-        this._triggerSelectionEvent('selected:transition', event);
+        var selectedTransition = this._triggerSelectionEvent('selected:transition', event);
+        this.selectTransition(selectedTransition);
     },
 
     propagateSelectedLink: function (event) {
@@ -39,13 +40,14 @@ module.exports = GraphView.extend({
     _triggerSelectionEvent: function (eventName, event) {
         var cell = this.model.getCell(event.currentTarget.getAttribute('model-id'));
         EventBus.trigger(eventName, cell);
+        return cell;
     },
 
     registerListeners: function () {
         this.listenTo(EventBus, 'node:new', this.newNode);
         this.listenTo(EventBus, 'node:remove', this.removeNode);
-        this.listenTo(EventBus, 'simulation:start', this.startSimulation);
-        this.listenTo(EventBus, 'simulation:stop', this.stopSimulation);
+        this.listenTo(EventBus, 'simulation:mark-active-transitions', this.markActiveTransitions);
+        this.listenTo(EventBus, 'simulation:reset', this.resetSimulation);
         this.listenTo(EventBus, 'simulation:next-step', this.nextStep);
         this.listenTo(EventBus, 'simulation:clear', this.clearGraph);
         this.listenTo(EventBus, 'io:export', this.exportToFile);

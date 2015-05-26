@@ -9,6 +9,31 @@ module.exports = pn.Transition.extend({
         pn.Transition.prototype.initialize.call(this, options);
     },
 
+    selected: function () {
+        if (!this.preselectedAttrs) {
+            this._initializePreselectedParameters();
+        }
+        this._setColors('blue', 'yellow');
+    },
+
+    _initializePreselectedParameters: function () {
+        this._copyAttributesTo('preselectedAttrs');
+    },
+
+    _copyAttributesTo: function (attributesName) {
+        var attributes = this.get('attrs');
+        this[attributesName] = {
+            fill: attributes['rect']['fill'],
+            stroke: attributes['rect']['stroke'],
+        }
+    },
+
+    deselect: function () {
+        if(this.preselectedAttrs) {
+            this._setColors(this.preselectedAttrs.fill, this.preselectedAttrs.stroke);
+        }
+    },
+
     setActive: function () {
         if (!this.inactiveAttrs) {
             this._initializeInactiveParameters();
@@ -17,14 +42,11 @@ module.exports = pn.Transition.extend({
     },
 
     _initializeInactiveParameters: function () {
-        var attributes = this.get('attrs');
-        this.inactiveAttrs = {
-            fill: attributes['rect']['fill'],
-            stroke: attributes['rect']['stroke']
-        }
+        this._copyAttributesTo('inactiveAttrs');
     },
 
     _setColors: function (fillColor, strokeColor) {
+        var attributes = this.get('attrs');
         attributes['rect']['fill'] = fillColor;
         attributes['rect']['stroke'] = strokeColor;
         this.unset('attrs', {silent: true});
@@ -33,7 +55,7 @@ module.exports = pn.Transition.extend({
 
     setInactive: function () {
         if (this.inactiveAttrs) {
-            this._setColors(inactiveAttrs.fill, inactiveAttrs.stroke);
+            this._setColors(this.inactiveAttrs.fill, this.inactiveAttrs.stroke);
         }
     },
 

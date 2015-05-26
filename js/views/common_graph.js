@@ -8,7 +8,7 @@ var Transition = require('./common_transition');
 
 module.exports = joint.dia.Paper.extend({
     initialize: function (options) {
-        _.bindAll(this, 'addTransition', 'addPlace', 'addLink', 'startSimulation', 'stopSimulation', 'nextStep', '_fireTransition', 'simulate');
+        _.bindAll(this, 'addTransition', 'addPlace', 'addLink', 'markActiveTransitions', 'resetSimulation', 'nextStep', 'clearGraph', '_fireTransition', 'simulate');
         this.model = new Graph({transitions: []});
         this._configure(options);
         joint.dia.Paper.prototype.initialize.call(this, options);
@@ -75,6 +75,10 @@ module.exports = joint.dia.Paper.extend({
         return transition;
     },
 
+    selectTransition: function (transition) {
+        transition.setSelected();
+    },
+
     addLink: function (src, dst, label) {
         label = label != undefined ? label : '1';
 
@@ -102,23 +106,29 @@ module.exports = joint.dia.Paper.extend({
         this.model.clear();
     },
 
-    startSimulation: function () {
+    startSimulation: function (count) {
         var simulationId = this.model.get('simulationId');
         if (!simulationId) {
-            simulationId = this.simulate();
-            this.model.set('simulationId', simulationId);
+            this.simulate(count);
         }
     },
 
-    stopSimulation: function () {
-        var simulationId = this.model.get('simulationId');
-        clearInterval(simulationId);
-        this.model.set('simulationId', null);
+    nextStep: function () {
+        this.startSimulation(1);
     },
 
-    nextStep: function () {
-        this.startSimulation();
-        this.stopSimulation();
+    simulate: function (count) {
+        var simId = setInterval(function () {
+            if(count--) {
+                this._fireTransitions()
+            } else {
+                clearInterval(simId);
+            }
+        }.bind(this), 2000);
+    },
+
+    resetSimulation: function () {
+
     },
 
     unique: function (list) {
@@ -153,14 +163,13 @@ module.exports = joint.dia.Paper.extend({
         placesWithCountRemove = this.unique(placesWithCountRemove);
     },
 
-
-    _fireTransition: function (t, sec) {
-        var inbound = this.model.getConnectedLinks(t, {inbound: true}),
-            outbound = this.model.getConnectedLinks(t, {outbound: true}),
+    _fireTransition: function (transition, sec) {
+        var inbound = this.model.getConnectedLinks(transition, {inbound: true}),
+            outbound = this.model.getConnectedLinks(transition, {outbound: true}),
             placesWithCountBefore = this._getPlacesWithTokenShift(inbound, 'source'),
             placesWithCountAfter = this._getPlacesWithTokenShift(outbound, 'target');
 
-        if (this._isFireable(t, inbound)) {
+        if (this._isFireable(transition, inbound)) {
             this._substractTokensFromPredecessors(placesWithCountBefore, inbound);
             this._addTokensToSuccessors(placesWithCountAfter, outbound);
             return {
@@ -211,7 +220,7 @@ module.exports = joint.dia.Paper.extend({
             });
 
             if (linkEndType === 'target') {
-                this._sendToken(link, function(){
+                this._sendToken(link, function () {
                     place.addTokens(count);
                 });
             }
@@ -230,34 +239,18 @@ module.exports = joint.dia.Paper.extend({
         }).node, 1 * 1000, callback);
     },
 
-    _showActiveTransitions: function () {
-        var transitions = this.model.get('transitions');
-        var activeTransitions = [];
+    markActiveTransitions: function () {
+        var transitions = this.model.get('transitions'),
+            activeTransitions = [];
+
         _.each(transitions, function (t) {
             if (this._isFireable(t)) {
+                t.setActive();
                 activeTransitions.push(t);
             }
 
         }, this);
-
-
-        console.log(activeTransitions);
-
-        _.each(activeTransitions, function (transition) {
-            transition.setActive();
-            var id = transition.get('id');
-
-            console.log(id);
-        }, this);
-
-    },
-
-    simulate: function () {
-        this._fireTransitions();
-
-        return setInterval(function () {
-            this._fireTransitions()
-        }.bind(this), 2000);
+        this.model.set('activeTransitions', activeTransitions);
     },
 
     shouldSimulate: function () {
