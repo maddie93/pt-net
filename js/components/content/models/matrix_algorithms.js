@@ -39,7 +39,7 @@ module.exports = Backbone.Model.extend({
                 return model.getCell(link.get('source').id);
             }, this);
             for (var j = 0; j < placesBefore.length; j++) {
-                inMatrix[x][places.indexOf(placesBefore[j]) + 1] = 1;
+                inMatrix[x][places.indexOf(placesBefore[j]) + 1] = inbound[j].getCount();
             }
             x++;
         }
@@ -86,7 +86,7 @@ module.exports = Backbone.Model.extend({
                 return model.getCell(link.get('target').id);
             }, this);
             for (var j = 0; j < placesAfter.length; j++) {
-                outMatrix[x][places.indexOf(placesAfter[j]) + 1] = 1;
+                outMatrix[x][places.indexOf(placesAfter[j]) + 1] = outbound[j].getCount();
             }
             x++;
         }
