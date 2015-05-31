@@ -26,7 +26,7 @@ module.exports = pn.Place.extend({
     },
 
     setTokens: function (value) {
-        return this.set('tokens', value);
+        return this.set('tokens', parseInt(value));
     },
 
     addTokens: function (count) {

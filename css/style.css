@@ -64,7 +64,7 @@ ul > li {
     text-align: center;
 }
 
-.buttons button, li button {
+.buttons button, li button, li input[type=file] {
     background: #324b80;
     border: none;
     color: #fff;

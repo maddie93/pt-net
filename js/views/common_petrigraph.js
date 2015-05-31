@@ -5,30 +5,11 @@ var Place = require('./common_place');
 var Transition = require('./common_transition');
 
 module.exports = Graph.extend({
-    selectTransition: function (transition) {
-        var previouslySelected = this.get('selected');
-        if (this._isFireable(transition)) {
-            if (previouslySelected) {
-                previouslySelected.deselect();
-            }
-            transition.select();
-            this.set('selected', transition);
-        }
-    },
-
-    clearSelection: function () {
-        var selected = this.get('selected');
-        if (selected) {
-            selected.deselect();
-            this.set('selected', undefined);
-        }
-    },
-
-    isTransitionSelectable: function (transition) {
-        var activeTransitions = this.get('activeTransitions');
-        return _.contains(activeTransitions, transition);
-    },
-
+    /**
+     * Fires selected transition
+     *
+     * @param sendTokenHook function which is run when transition occurs - used as a hook by View to trigger UI action for token shift
+     */
     fireSelectedTransition: function (sendTokenHook) {
         var placesWithCountRemove = [];
         var placesWithCountAdd = [];
@@ -38,8 +19,7 @@ module.exports = Graph.extend({
             return;
         }
 
-        this.sendTokenHook = sendTokenHook;
-        var placesToAddAndRemove = this.fireTransition(selectedTransition);
+        var placesToAddAndRemove = this.fireTransition(selectedTransition, sendTokenHook);
 
         if (placesToAddAndRemove) {
             if (placesToAddAndRemove['remove']) {
@@ -49,13 +29,20 @@ module.exports = Graph.extend({
                 placesWithCountAdd = placesWithCountAdd.concat(placesToAddAndRemove['add']);
             }
         }
-        this.sendTokenHook = undefined;
 
         placesWithCountAdd = this.unique(placesWithCountAdd);
         placesWithCountRemove = this.unique(placesWithCountRemove);
     },
 
-    fireTransition: function (transition) {
+    /**
+     * Fires transition
+     *
+     * @param transition    target transition
+     * @param sendTokenHook function which is run when transition occurs - used as a hook by View to trigger UI action for token shift
+     */
+    fireTransition: function (transition, sendTokenHook) {
+        this.sendTokenHook = sendTokenHook;
+
         var inbound = this.getConnectedLinks(transition, {inbound: true}),
             outbound = this.getConnectedLinks(transition, {outbound: true}),
             placesWithCountBefore = this._getPlacesWithTokenShift(inbound, 'source'),
@@ -69,6 +56,8 @@ module.exports = Graph.extend({
                 add: _.pluck(placesWithCountAfter, 'place')
             };
         }
+
+        this.sendTokenHook = undefined;
     },
 
     unique: function (list) {
@@ -140,5 +129,24 @@ module.exports = Graph.extend({
                 place.subtractTokens(count);
             }
         }, this);
+    },
+
+    selectTransition: function (transition) {
+        var previouslySelected = this.get('selected');
+        if (this._isFireable(transition)) {
+            if (previouslySelected) {
+                previouslySelected.deselect();
+            }
+            transition.select();
+            this.set('selected', transition);
+        }
+    },
+
+    clearSelection: function () {
+        var selected = this.get('selected');
+        if (selected) {
+            selected.deselect();
+            this.set('selected', undefined);
+        }
     }
 });

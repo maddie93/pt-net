@@ -13,7 +13,7 @@ module.exports = Backbone.View.extend({
             +'<li><button id="simulation">Simulation > </button></li>'
             +'<div id="simulation-options"><ul>'
             +'<li><button id="simulation-mark-active-transitions">Mark active T\'s</button></li>'
-            +'<li><button id="simulation-reset">Reset</button></li>'
+            +'<li><button id="simulation-reset-markers">Reset markers</button></li>'
             +'<li><button id="simulation-next-step">Next Step</button></li>'
             +'</ul></div>'
             +'<li><button id="simulation-clear">Clear view</button></li>'
@@ -34,7 +34,7 @@ module.exports = Backbone.View.extend({
 
     events: {
         'click #simulation-mark-active-transitions': EventBus.propagateGlobalEvent('simulation:mark-active-transitions'),
-        'click #simulation-reset': EventBus.propagateGlobalEvent('simulation:reset'),
+        'click #simulation-reset-markers': EventBus.propagateGlobalEvent('simulation:reset-markers'),
         'click #simulation-next-step': EventBus.propagateGlobalEvent('simulation:next-step'),
         'click #simulation-clear': EventBus.propagateGlobalEvent('simulation:clear'),
         'click #export': EventBus.propagateGlobalEvent('io:export'),

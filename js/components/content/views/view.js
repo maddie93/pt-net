@@ -48,7 +48,7 @@ module.exports = GraphView.extend({
         this.listenTo(EventBus, 'node:new', this.newNode);
         this.listenTo(EventBus, 'node:remove', this.removeNode);
         this.listenTo(EventBus, 'simulation:mark-active-transitions', this.markActiveTransitions);
-        this.listenTo(EventBus, 'simulation:reset', this.reset);
+        this.listenTo(EventBus, 'simulation:reset-markers', this.clearActiveMarkers);
         this.listenTo(EventBus, 'simulation:next-step', this.nextStep);
         this.listenTo(EventBus, 'simulation:clear', this.clearGraph);
         this.listenTo(EventBus, 'io:export', this.exportToFile);
