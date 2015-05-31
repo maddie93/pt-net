@@ -1,5 +1,5 @@
 var SidebarView = require('../components/sidebar/views/sidebar');
-var GraphView = require('../components/content/views/graph');
+var GraphView = require('../components/content/views/view');
 var joint = require('jointjs');
 var graph = joint.dia.Graph;
 

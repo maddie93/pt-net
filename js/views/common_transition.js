@@ -9,7 +9,7 @@ module.exports = pn.Transition.extend({
         pn.Transition.prototype.initialize.call(this, options);
     },
 
-    selected: function () {
+    select: function () {
         if (!this.preselectedAttrs) {
             this._initializePreselectedParameters();
         }
@@ -26,6 +26,14 @@ module.exports = pn.Transition.extend({
             fill: attributes['rect']['fill'],
             stroke: attributes['rect']['stroke'],
         }
+    },
+
+    _setColors: function (fillColor, strokeColor) {
+        var attributes = this.get('attrs');
+        attributes['rect']['fill'] = fillColor;
+        attributes['rect']['stroke'] = strokeColor;
+        this.unset('attrs', {silent: true});
+        this.set('attrs', attributes);
     },
 
     deselect: function () {
@@ -45,18 +53,15 @@ module.exports = pn.Transition.extend({
         this._copyAttributesTo('inactiveAttrs');
     },
 
-    _setColors: function (fillColor, strokeColor) {
-        var attributes = this.get('attrs');
-        attributes['rect']['fill'] = fillColor;
-        attributes['rect']['stroke'] = strokeColor;
-        this.unset('attrs', {silent: true});
-        this.set('attrs', attributes);
-    },
-
     setInactive: function () {
         if (this.inactiveAttrs) {
             this._setColors(this.inactiveAttrs.fill, this.inactiveAttrs.stroke);
         }
+    },
+
+    clear: function () {
+        this.deselect();
+        this.setInactive();
     },
 
     getLabel: function () {

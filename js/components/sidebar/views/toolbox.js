@@ -1,4 +1,4 @@
-var GraphView = require('../../../views/common_graph');
+var GraphView = require('../../../views/common_view');
 
 module.exports = GraphView.extend({
     initialize: function (options) {

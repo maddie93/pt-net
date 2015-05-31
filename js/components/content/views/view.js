@@ -1,4 +1,4 @@
-var GraphView = require('../../../views/common_graph');
+var GraphView = require('../../../views/common_view');
 var GraphLoader = require('../models/graph_loader');
 var MatrixAlgoritms = require('../models/matrix_algorithms');
 var GraphAlgoritms = require('../models/graph_alghoritms');
@@ -21,7 +21,8 @@ module.exports = GraphView.extend({
     events: {
         'click .Place': 'propagateSelectedPlace',
         'click .Transition': 'propagateSelectedTransition',
-        'click .link': 'propagateSelectedLink'
+        'click .link': 'propagateSelectedLink',
+        'click svg': 'clearSelection'
     },
 
     propagateSelectedPlace: function (event) {
@@ -47,7 +48,7 @@ module.exports = GraphView.extend({
         this.listenTo(EventBus, 'node:new', this.newNode);
         this.listenTo(EventBus, 'node:remove', this.removeNode);
         this.listenTo(EventBus, 'simulation:mark-active-transitions', this.markActiveTransitions);
-        this.listenTo(EventBus, 'simulation:reset', this.resetSimulation);
+        this.listenTo(EventBus, 'simulation:reset', this.reset);
         this.listenTo(EventBus, 'simulation:next-step', this.nextStep);
         this.listenTo(EventBus, 'simulation:clear', this.clearGraph);
         this.listenTo(EventBus, 'io:export', this.exportToFile);
