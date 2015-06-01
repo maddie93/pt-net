@@ -17,7 +17,7 @@ body {
     box-shadow: 10px 10px 5px 0 rgba(0, 0, 0, 0.75);
     display: flex;
     margin: auto;
-    max-width: 1000px;
+    max-width: 1300px;
     flex-wrap: wrap;
 }
 
@@ -78,6 +78,8 @@ ul > li {
 
 #content {
     background: #FFF;
+    overflow: scroll;
+    height: 600px;
     width: 80%;
 }
 

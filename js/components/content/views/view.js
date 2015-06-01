@@ -9,11 +9,11 @@ module.exports = GraphView.extend({
     graphAlgorithms: new GraphAlgoritms,
     initialize: function (options) {
         _.extend(this.events, GraphView.prototype.events);
-        GraphView.prototype.initialize.call(this, options);
-        options.width = 800;
-        options.height = 600;
+        options.width = 2000;
+        options.height = 1500;
         options.gridSize = 10;
         options.perpendicularLinks = false;
+        GraphView.prototype.initialize.call(this, options);
         this.registerListeners();
         this.initTest();
     },
