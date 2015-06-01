@@ -16,11 +16,18 @@ module.exports = joint.dia.Paper.extend({
             }
             return true;
         };
-        options.pointerdblclick = function (evt, x, y) {
-            if (V(evt.target).hasClass('connection') || V(evt.target).hasClass('connection-wrap')) {
-                this.addVertex({x: x, y: y});
-            }
-        };
+        options.linkView = joint.dia.LinkView.extend({
+            pointerdblclick: function(evt, x, y) {
+                if (V(evt.target).hasClass('connection') || V(evt.target).hasClass('connection-wrap')) {
+                    this.addVertex({ x: x, y: y });
+                }
+            },
+            options: _.extend({}, joint.dia.LinkView.prototype.options, {
+                doubleLinkTools: true,
+                linkToolsOffset: 40,
+                doubleLinkToolsOffset: 60
+            })
+        });
 
         this._configure(options);
         joint.dia.Paper.prototype.initialize.call(this, options);
