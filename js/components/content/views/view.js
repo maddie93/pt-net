@@ -145,7 +145,8 @@ module.exports = GraphView.extend({
         }
 
     },
+
     showGraph: function(){
-        console.log(this.graphAlgorithms.getActiveTransitions(this.model))
+        console.log(this.graphAlgorithms.createCoverityTree(this.model));
     }
 });
