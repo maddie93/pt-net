@@ -10,6 +10,18 @@ module.exports = joint.dia.Paper.extend({
     initialize: function (options) {
         _.bindAll(this, 'addTransition', 'addPlace', 'addLink', 'markActiveTransitions', 'clearActiveMarkers', 'nextStep', 'clearGraph', '_simulate', '_sendToken');
         this.model = new Graph({transitions: []});
+        options.interactive = function (cellView) {
+            if (cellView.model instanceof joint.dia.Link) {
+                return {vertexAdd: false};
+            }
+            return true;
+        };
+        options.pointerdblclick = function (evt, x, y) {
+            if (V(evt.target).hasClass('connection') || V(evt.target).hasClass('connection-wrap')) {
+                this.addVertex({x: x, y: y});
+            }
+        };
+
         this._configure(options);
         joint.dia.Paper.prototype.initialize.call(this, options);
 
@@ -20,14 +32,16 @@ module.exports = joint.dia.Paper.extend({
         var place = new Place({position: {x: x, y: y}, attrs: {'.label': {text: text}}, tokens: tokens});
         this.model.addCell(place);
         return place;
-    },
+    }
+    ,
 
     addTransition: function (x, y, text) {
         var transition = new Transition({position: {x: x, y: y}, attrs: {'.label': {text: text}}});
         this.model.addCell(transition);
         this.model.get('transitions').push(transition);
         return transition;
-    },
+    }
+    ,
 
     addLink: function (src, dst, label) {
         label = label != undefined ? label : '1';
@@ -43,39 +57,46 @@ module.exports = joint.dia.Paper.extend({
         link.setCount(label);
         this.model.addCell(link);
         return link;
-    },
+    }
+    ,
 
     selectTransition: function (transition) {
         this.model.selectTransition(transition);
-    },
+    }
+    ,
 
     clearSelection: function (event) {
         if (event.target.nodeName === 'svg') {
             this.model.clearSelection();
         }
-    },
+    }
+    ,
 
     _prepareIfEndpointIsNode: function (endpoint) {
         if (endpoint['id']) {
             endpoint = {id: endpoint.id, selector: '.root'};
         }
         return endpoint;
-    },
+    }
+    ,
 
     clearGraph: function () {
         this.model.clear();
-    },
+    }
+    ,
 
     nextStep: function () {
         this.startSimulation(1);
-    },
+    }
+    ,
 
     startSimulation: function (count) {
         var simulationId = this.model.get('simulationId');
         if (!simulationId) {
             this._simulate(count, 2000);
         }
-    },
+    }
+    ,
 
     _simulate: function (count) {
         count > 0 && this.model.fireSelectedTransition(this._sendToken);
@@ -87,14 +108,16 @@ module.exports = joint.dia.Paper.extend({
                 clearInterval(simId);
             }
         }.bind(this), 2 * 2000);
-    },
+    }
+    ,
 
     _sendToken: function (link, callback) {
         this.findViewByModel(link).sendToken(V('circle', {
             r: 5,
             fill: 'red'
         }).node, 1 * 1000, callback);
-    },
+    }
+    ,
 
     markActiveTransitions: function () {
         var transitions = this.model.get('transitions'),
@@ -110,13 +133,15 @@ module.exports = joint.dia.Paper.extend({
 
         }, this);
         this.model.set('activeTransitions', activeTransitions);
-    },
+    }
+    ,
 
     clearActiveMarkers: function () {
         _.each(this.model.get('activeTransitions'), function (activeTransition) {
             activeTransition.clear();
         });
-    },
+    }
+    ,
 
     _changeLink: function (link) {
         var changed = link.changed,
@@ -163,4 +188,5 @@ module.exports = joint.dia.Paper.extend({
         }
 
     }
-});
+})
+;
