@@ -80,6 +80,7 @@ module.exports = GraphView.extend({
 
     removeNode: function (node) {
         this.model.get('cells').remove(node);
+        this.model.get('transitions').remove(node);
     },
 
     initTest: function () {
@@ -119,8 +120,46 @@ module.exports = GraphView.extend({
     },
 
     createGraphFromJSON: function (jsonstring) {
+        var x, y, text, newCell;
+
         this.clearGraph();
-        this.model.fromJSON(jsonstring);
+
+        var links = [];
+        _.each(jsonstring.cells, function (cell) {
+            if (cell.type !== 'link') {
+                x = cell.position.x;
+                y = cell.position.y;
+                text = cell.attrs['.label'].text;
+            } else {
+                links.push(cell);
+                return;
+            }
+
+            if (cell.type === 'pn.Transition') {
+                newCell = this.addTransition(x, y, text);
+            } else if (cell.type === 'pn.Place') {
+                var tokens = cell.tokens;
+                newCell = this.addPlace(x, y, text, tokens);
+            }
+
+            _.each(jsonstring.cells, function(c) {
+                if (c.type === 'link') {
+                    if (c.source['id'] && c.source.id === cell.id) {
+                        c.source.id = newCell.id;
+                    }  else if (c.target['id'] && c.target.id === cell.id) {
+                        c.target.id = newCell.id;
+                    }
+                }
+            });
+        }.bind(this));
+
+        var model = this.model;
+        _.each(links, function (link) {
+            x = this._prepareIfEndpointIsNode(link.source);
+            y = this._prepareIfEndpointIsNode(link.target);
+            text = link.labels[0].attrs.text.text;
+            newCell = this.addLink(x, y, text);
+        }.bind(this));
     },
 
 
@@ -146,7 +185,7 @@ module.exports = GraphView.extend({
 
     },
 
-    showGraph: function(){
+    showGraph: function () {
         console.log(this.graphAlgorithms.createCoverityTree(this.model));
     }
 });
