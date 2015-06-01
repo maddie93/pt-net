@@ -207,5 +207,113 @@ module.exports = Backbone.Model.extend({
             }
         });
         return active;
+    },
+
+    containsStates: function(state,statesList){
+        var isDuplicate = false;
+        _.each(statesList,function(entry){
+            if(this.areEqualStates(state, entry)){
+                isDuplicate = true;
+            }
+        },this);
+        return isDuplicate;
+    },
+
+    createReachabilityTree: function (model) {
+        var workModel = jQuery.extend(true,{},model);
+        var statesList = [];
+        var id = 1;
+        var states = this.getNetState(workModel);
+        states.status = 'new';
+        states.id = id++;
+        statesList.push(states);
+        while (this.isAnyNewStates(statesList)) {
+            var firstNewStates = this.findFirstNewStates(statesList);
+            this.statesToModel(workModel,firstNewStates);
+            var activeTransitions = this.getActiveTransitions(workModel);
+            if(activeTransitions.length==0) firstNewStates.status = 'end';
+            _.each(activeTransitions,function(entry){
+                this.fireTransition(workModel,entry);
+                var tmpStates = this.getNetState(workModel);
+                if (!this.containsStates(tmpStates, statesList)) {
+                    tmpStates.transition=entry.getLabel();
+                    tmpStates.status = 'new';
+                    tmpStates.id = id++;
+                    tmpStates.parent = firstNewStates.id;
+                    statesList.push(tmpStates);
+                }
+                this.statesToModel(workModel,firstNewStates);
+            },this);
+            firstNewStates.status = 'old'
+        }
+        this.statesToModel(workModel,statesList[0]);
+        return statesList;
+    },
+
+    isDeadlockFree: function (statesList) {
+        var isDeadlockFree = true;
+        for(var i = 0; i < statesList.length; i++) {
+            if (statesList[i].status == 'end') {
+                isDeadlockFree = false;
+                break;
+            }
+        }
+        return isDeadlockFree;
+    },
+
+    getUpperBound: function (statesList) {
+        var upperBound = 0;
+        for (var i = 0; i < statesList.length; i++) {
+            for (var j = 0; j < statesList[0].length; j++) {
+                if (statesList[i][j] > upperBound) {
+                    upperBound = statesList[i][j];
+                }
+            }
+        }
+        return upperBound;
+    },
+
+    isSafe: function (statesList) {
+        if (getUpperBound(stateList) == 1) {
+            return true;
+        }
+        return false;
+    },
+
+    getPlacesBounds: function (statesList, model) {
+        var upperBounds = [];
+        var places = this.getPlaces(model);
+        var k = 0;
+        _.each(places, function (entry) {
+            upperBounds[k++] = [entry.getLabel(), 0];
+        });
+        for (var i = 0; i < statesList.length; i++) {
+            for (var j = 0; j < statesList[0].length; j++) {
+                if (statesList[i][j] > upperBounds[j][1]) {
+                    upperBounds[j][1] = statesList[i][j];
+                }
+            }
+        }
+        return upperBounds;
+    },
+
+    isPreservative: function (statesList) {
+        var isPreservative = true;
+        var sum = 0;
+        var tSum = 0;
+        for(var i = 0; i < statesList[0].length; i++) {
+            sum += statesList[0][i];
+        }
+        for (var i = 0; i < statesList.length; i++) {
+            tSum = 0;
+            for(var j = 0; j < statesList[0].length; j++) {
+                tSum += statesList[i][j];
+            }
+            if (tSum != sum) {
+                isPreservative = false;
+                break;
+            }
+        }
+        return isPreservative;
     }
 });
