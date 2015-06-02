@@ -1,5 +1,107 @@
+var joint = require('jointjs');
 
 module.exports = Backbone.Model.extend({
+    createCoverityGraph: function(model){
+        var statesList = this.createCoverityTree(model);
+        var cells = this.mergeDuplicates(statesList);
+    },
+
+    mergeDuplicates: function(statesList){
+        for(var i = 0; i < statesList.length; i++){
+            var isDuplicated = false;
+            for(var j = 0; j < i; j++){
+                if(this.areEqualStates(statesList[i],statesList[j])){
+
+                }
+            }
+        }
+
+    },
+
+    convertToGraph: function(statesList){
+        var cellsArray = [];
+        this.setStateTier(statesList);
+        var tiers = this.countTiers(statesList);
+        var widths = this.countWidthPerTier(tiers,800);
+        var heights = this.countHeightPerTier(tiers,600);
+        var newCell = function(x,y,states){
+            var cell = new joint.shapes.basic.Rect({
+                position: {x: x, y: y },
+                size: { width:100, height: 30},
+                attrs: { text:{ text: states, fill: 'black'}}
+            });
+            cell.stateId = states.id;
+            cell.stateParent = states.parent;
+            cell.stateTransition = states.transition;
+            cellsArray.push(cell);
+            return cell;
+        };
+
+        _.each(statesList,function(entry){
+            var tier = entry.tier;
+            var width = (widths[tier]*2*tier)+widths[tier];
+            var height = (heights*2*tier)+heights
+            newCell(width,height,entry);
+            var source = this.findCellIdByStateId(entry.id,cellsArray)
+            var target = this.findCellIdByStateId(entry.parent,cellsArray)
+            var edge = this.link(source, target, entry.stateTransition, cellsArray);
+            cellsArray.push(edge);
+        },this);
+        return cellsArray;
+    },
+
+    findCellIdByStateId: function(id,cells){
+        var id;
+        _.each(cells,function(entry){
+            if(entry.stateId==id) id = entry.id;
+        });
+        return id;
+    },
+
+    link: function(source,target,label){
+        var cell = new joint.dia.Link({
+            source: { id: source },
+            target: { id: target },
+            attrs: {
+                '.marker-target': { d: 'M 10 0 L 0 5 L 10 10 z' }
+            },
+            labels: [
+                { position: .5, attrs: { text: { text: label } } }
+            ]
+        });
+        return cell;
+    },
+
+    setStateTier: function(statesList){
+        statesList[0].tier = 0;
+        for(var i = 1; i < statesList.length; i++){
+            statesList[i].tier = statesList[statesList[i].parent-1].tier+1;
+        }
+    },
+
+    countTiers: function(statesList){
+        var tiers = [];
+        _.each(statesList,function(entry){
+            var tier = entry.tier;
+            if(tiers[tier]==undefined) tiers[tier]=1;
+            else tiers[tier]++
+        });
+        return tiers;
+    },
+
+    countWidthPerTier: function(tiers,maxWidth){
+        var widths = [];
+        var i;
+        for(i=0; i < tiers.length; i++){
+            widths[i]=maxWidth/(tiers[i]*2);
+        }
+        return widths
+    },
+
+    countHeightPerTier: function(tiers,maxHeight){
+        return maxHeight/(tiers.length * 2);
+    },
+
     createCoverityTree: function (model) {
         var workModel = jQuery.extend(true,{},model);
         var statesList = [];
@@ -7,6 +109,8 @@ module.exports = Backbone.Model.extend({
         var states = this.getNetState(workModel);
         states.status = 'new';
         states.id = id++;
+        states.parent = undefined;
+        states.transition = undefined;
         statesList.push(states);
         while (this.isAnyNewStates(statesList)) {
             var firstNewStates = this.findFirstNewStates(statesList);
@@ -31,6 +135,7 @@ module.exports = Backbone.Model.extend({
             firstNewStates.status = 'old'
         }
         this.statesToModel(workModel,statesList[0]);
+        return statesList;
     },
 
     handleAccumulation: function(state,stateList){

@@ -2,6 +2,7 @@ var GraphView = require('../../../views/common_view');
 var GraphLoader = require('../models/graph_loader');
 var MatrixAlgoritms = require('../models/matrix_algorithms');
 var GraphAlgoritms = require('../models/graph_alghoritms');
+var joint = require('jointjs');
 
 module.exports = GraphView.extend({
     graphLoader: new GraphLoader,
@@ -85,10 +86,10 @@ module.exports = GraphView.extend({
 
     initTest: function () {
         var pReady = this.addPlace(140, 50, 'ready', 1);
-        var pIdle = this.addPlace(140, 260, 'idle', 2);
-        var pBuffer = this.addPlace(350, 160, 'buffer', 12);
-        var cAccepted = this.addPlace(350, 50, 'accepted', 1);
-        var cReady = this.addPlace(560, 260, 'ready', 3);
+        var pIdle = this.addPlace(140, 260, 'idle', 0);
+        var pBuffer = this.addPlace(350, 160, 'buffer', 0);
+        var cAccepted = this.addPlace(350, 50, 'accepted', 0);
+        var cReady = this.addPlace(560, 260, 'ready', 1);
 
         var pProduce = this.addTransition(50, 160, 'produce');
         var pSend = this.addTransition(270, 160, 'send');
@@ -186,6 +187,25 @@ module.exports = GraphView.extend({
     },
 
     showGraph: function () {
-        console.log(this.graphAlgorithms.createCoverityTree(this.model));
+        if ($('#coverityGraph').length) {
+            $('#coverityGraph').remove();
+            $('button#graph').html('Matrix > ');
+        } else {
+            var states = this.graphAlgorithms.createCoverityTree(this.model);
+            var cells = this.graphAlgorithms.convertToGraph(states);
+            var graph = new joint.dia.Graph;
+
+            var paper = new joint.dia.Paper({
+                el: $('#coverityGraph'),
+                width: 800,
+                height: 600,
+                gridSize: 1,
+                model: graph,
+                perpendicularLinks: true
+            });
+             graph.addCells(cells);
+            $('#content').prepend('<div id="coverityGraph" class="popup"></div>');
+            $('button#matrix').html('Matrix < ');
+        }
     }
 });
