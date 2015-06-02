@@ -1,3 +1,4 @@
+var V = require('vectorizer').V;
 var GraphView = require('../../../views/common_view');
 var GraphLoader = require('../models/graph_loader');
 var MatrixAlgoritms = require('../models/matrix_algorithms');
@@ -116,7 +117,8 @@ module.exports = GraphView.extend({
         this.graphLoader.importFromFile(function (e) {
             read = e.target.result;
             console.log("file read");
-            this.createGraphFromJSON(JSON.parse(read));
+            var parsed = JSON.parse(read);
+            this.createGraphFromJSON(parsed);
         }.bind(this));
     },
 
@@ -124,7 +126,6 @@ module.exports = GraphView.extend({
         var x, y, text, newCell;
 
         this.clearGraph();
-
         var links = [];
         _.each(jsonstring.cells, function (cell) {
             if (cell.type !== 'link') {
@@ -154,12 +155,16 @@ module.exports = GraphView.extend({
             });
         }.bind(this));
 
-        var model = this.model;
         _.each(links, function (link) {
             x = this._prepareIfEndpointIsNode(link.source);
             y = this._prepareIfEndpointIsNode(link.target);
+
             text = link.labels[0].attrs.text.text;
             newCell = this.addLink(x, y, text);
+
+            if(link.vertices) {
+                newCell.set('vertices', link.vertices);
+            }
         }.bind(this));
     },
 
