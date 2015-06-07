@@ -20,10 +20,12 @@ module.exports = Backbone.Model.extend({
 
     convertToGraph: function(statesList){
         var cellsArray = [];
+        this.infinityPrinter(statesList);
         this.setStateTier(statesList);
         var tiers = this.countTiers(statesList);
-        var widths = this.countWidthPerTier(tiers,800);
-        var heights = this.countHeightPerTier(tiers,600);
+        var widths = this.countWidthPerTier(tiers,1300);
+        var heights = this.countHeightPerTier(tiers,800);
+        var cellsCounter = [];
         var newCell = function(x,y,states){
             var cell = new joint.shapes.basic.Rect({
                 position: {x: x, y: y },
@@ -39,15 +41,32 @@ module.exports = Backbone.Model.extend({
 
         _.each(statesList,function(entry){
             var tier = entry.tier;
-            var width = (widths[tier]*2*tier)+widths[tier];
+            if(cellsCounter[tier]==undefined) cellsCounter[tier]=0;
+            else cellsCounter[tier]++;
+            var width = (widths[tier]*2*cellsCounter[tier])+widths[tier];
             var height = (heights*2*tier)+heights
             newCell(width,height,entry);
-            var source = this.findCellIdByStateId(entry.id,cellsArray)
-            var target = this.findCellIdByStateId(entry.parent,cellsArray)
-            var edge = this.link(source, target, entry.stateTransition, cellsArray);
-            cellsArray.push(edge);
+            if(entry.parent!=undefined){
+                var target = this.findCellIdByStateId(entry.id,cellsArray)
+                var source = this.findCellIdByStateId(entry.parent,cellsArray)
+                var edge = this.link(source, target, entry.stateTransition, cellsArray);
+                cellsArray.push(edge);
+            }
+
+
         },this);
         return cellsArray;
+    },
+
+    infinityPrinter: function(statesList){
+        for(var i =0; i< statesList.length; i++){
+            var states = statesList[i];
+            for(var j = 0; j < states.length; j++){
+                if(states[j] == 999){
+                    states[j]='\u221E';
+                }
+            }
+        }
     },
 
     findCellIdByStateId: function(id,cells){

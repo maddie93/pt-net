@@ -194,23 +194,24 @@ module.exports = GraphView.extend({
     showGraph: function () {
         if ($('#coverityGraph').length) {
             $('#coverityGraph').remove();
-            $('button#graph').html('Matrix > ');
+            $('button#graph').html('Graph > ');
         } else {
+            $('#content').prepend('<div id="coverityGraph" class="popup"></div>');
             var states = this.graphAlgorithms.createCoverityTree(this.model);
             var cells = this.graphAlgorithms.convertToGraph(states);
             var graph = new joint.dia.Graph;
 
             var paper = new joint.dia.Paper({
                 el: $('#coverityGraph'),
-                width: 800,
-                height: 600,
+                width: 1500,
+                height: 800,
                 gridSize: 1,
                 model: graph,
                 perpendicularLinks: true
             });
              graph.addCells(cells);
-            $('#content').prepend('<div id="coverityGraph" class="popup"></div>');
-            $('button#matrix').html('Matrix < ');
+
+            $('button#graph').html('Graph < ');
         }
     }
 });
