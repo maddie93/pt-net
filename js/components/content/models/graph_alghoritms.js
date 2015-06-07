@@ -143,11 +143,11 @@ module.exports = Backbone.Model.extend({
             _.each(activeTransitions,function(entry){
                 this.fireTransition(workModel,entry);
                 var tmpStates = this.getNetState(workModel);
-                this.handleAccumulation(tmpStates,statesList);
                 tmpStates.transition=entry.getLabel();
                 tmpStates.status = 'new';
                 tmpStates.id = id++;
                 tmpStates.parent = firstNewStates.id;
+                this.handleAccumulation(tmpStates,this.filterPath(tmpStates,statesList));
                 statesList.push(tmpStates);
                 this.statesToModel(workModel,firstNewStates);
             },this);
@@ -155,6 +155,16 @@ module.exports = Backbone.Model.extend({
         }
         this.statesToModel(workModel,statesList[0]);
         return statesList;
+    },
+
+    filterPath: function(state,statesList){
+        var filtered = [];
+        var tmp = state;
+        while(tmp.parent!=undefined){
+            tmp = statesList[tmp.parent-1];
+            filtered.push(statesList[tmp.id-1]);
+        }
+        return filtered;
     },
 
     handleAccumulation: function(state,stateList){
