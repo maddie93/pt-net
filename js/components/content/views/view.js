@@ -4,6 +4,8 @@ var GraphLoader = require('../models/graph_loader');
 var MatrixAlgoritms = require('../models/matrix_algorithms');
 var GraphAlgoritms = require('../models/graph_alghoritms');
 var joint = require('jointjs');
+var directedGraph = require('dagre');
+
 
 module.exports = GraphView.extend({
     graphLoader: new GraphLoader,
@@ -56,7 +58,8 @@ module.exports = GraphView.extend({
         this.listenTo(EventBus, 'io:export', this.exportToFile);
         this.listenTo(EventBus, 'io:import', this.importFromFile);
         this.listenTo(EventBus, 'matrix:showmatrix', this.showMatrix);
-        this.listenTo(EventBus, 'graph:showgraph', this.showGraph);
+        this.listenTo(EventBus, 'graph:showCoverityTree', this.showCoverityTree);
+        this.listenTo(EventBus, 'graph:showCoverityGraph', this.showCoverityGraph);
     },
 
     newNode: function (event) {
@@ -191,18 +194,18 @@ module.exports = GraphView.extend({
 
     },
 
-    showGraph: function () {
-        if ($('#coverityGraph').length) {
-            $('#coverityGraph').remove();
-            $('button#graph').html('Graph > ');
+    showCoverityTree: function () {
+        if ($('#coveritytreepaper').length) {
+            $('#coveritytreepaper').remove();
+            $('button#coveritytree').html('Generate Coverity Tree > ');
         } else {
-            $('#content').prepend('<div id="coverityGraph" class="popup"></div>');
+            $('#content').prepend('<div id="coveritytreepaper" class="popup"></div>');
             var states = this.graphAlgorithms.createCoverityTree(this.model);
             var cells = this.graphAlgorithms.convertToGraph(states);
             var graph = new joint.dia.Graph;
 
             var paper = new joint.dia.Paper({
-                el: $('#coverityGraph'),
+                el: $('#coveritytreepaper'),
                 width: 1500,
                 height: 800,
                 gridSize: 1,
@@ -210,8 +213,31 @@ module.exports = GraphView.extend({
                 perpendicularLinks: true
             });
              graph.addCells(cells);
+            joint.layout.DirectedGraph.layout(graph, { setLinkVertices: false });
+            $('button#coveritytree').html('Generate Coverity Tree < ');
+        }
+    },
+    showCoverityGraph: function () {
+        if ($('#coveritygraphpaper').length) {
+            $('#coveritygraphpaper').remove();
+            $('button#coveritygraph').html('Generate Coverity Graph > ');
+        } else {
+            $('#content').prepend('<div id="coveritygraphpaper" class="popup"></div>');
+            var toGraph = this.graphAlgorithms.createCoverityGraph(this.model);
+            var cells = this.graphAlgorithms.convertToGraph(toGraph);
+            var graph = new joint.dia.Graph;
 
-            $('button#graph').html('Graph < ');
+            var paper = new joint.dia.Paper({
+                el: $('#coveritygraphpaper'),
+                width: 1500,
+                height: 800,
+                gridSize: 1,
+                model: graph,
+                perpendicularLinks: true
+            });
+            graph.resetCells(cells);
+            joint.layout.DirectedGraph.layout(graph, { setLinkVertices: false });
+            $('button#coveritygraph').html('Generate Coverity Graph < ');
         }
     }
 });

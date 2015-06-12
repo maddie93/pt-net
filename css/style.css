@@ -88,7 +88,7 @@ ul, li {
     list-style-type: none;
 }
 
-#iomenu li button, #simulation-options li button {
+#iomenu li button, #simulation-options li button, #graphmenu li button{
     background: #556E84;
 }
 

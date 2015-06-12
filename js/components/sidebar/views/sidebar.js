@@ -25,6 +25,10 @@ module.exports = Backbone.View.extend({
             +'</ul></div>'
             +'<li><button id="matrix">Matrix > </button></li>'
             +'<li><button id="graph">Graph > </button></li>'
+            +'<div id="graphmenu"><ul>'
+            +'<li><button id="coveritytree">Generate Coverity Tree ></button></li>'
+            +'<li><button id="coveritygraph">Generate Coverity Graph ></button></li>'
+            +'</ul></div>'
             +'</ul></div>';
     },
 
@@ -40,7 +44,9 @@ module.exports = Backbone.View.extend({
         'click #export': EventBus.propagateGlobalEvent('io:export'),
         'click #import': EventBus.propagateGlobalEvent('io:import'),
         'click #matrix': EventBus.propagateGlobalEvent('matrix:showmatrix'),
-        'click #graph': EventBus.propagateGlobalEvent('graph:showgraph'),
+        'click #coveritytree': EventBus.propagateGlobalEvent('graph:showCoverityTree'),
+        'click #coveritygraph': EventBus.propagateGlobalEvent('graph:showCoverityGraph'),
+        'click #graph': 'toggleGraphOptions',
         'click #io': 'showOptions',
         'click #nodeop': 'toggleNodeOptions',
         'click #simulation': 'toggleSimulationOptions',
@@ -61,6 +67,7 @@ module.exports = Backbone.View.extend({
         $('#iomenu').hide();
         $('#node-options').hide();
         $('#simulation-options').hide();
+        $('#graphmenu').hide();
 
         return this;
     },
@@ -72,6 +79,9 @@ module.exports = Backbone.View.extend({
     },
     toggleSimulationOptions : function(){
         $('#simulation-options').toggle();
+    },
+    toggleGraphOptions : function(){
+        $('#graphmenu').toggle();
     },
     closePopup : function(){
         $('.popup').remove();
