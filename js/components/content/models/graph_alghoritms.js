@@ -369,25 +369,28 @@ module.exports = Backbone.Model.extend({
         return active;
     },
 
-    containsStates: function(state,statesList){
-        var isDuplicate = false;
-        _.each(statesList,function(entry){
-            if(this.areEqualStates(state, entry)){
-                isDuplicate = true;
+    getStatePosition: function(state,statesList){
+        var temp = -1;
+        for (var i = 0; i < statesList.length; i++) {
+            if(this.areEqualStates(state, statesList[i])){
+                temp = i;
+                break;
             }
-        },this);
-        return isDuplicate;
+        }
+        return temp;
     },
 
-    createReachabilityTree: function (model) {
+    createReachabilityGraph: function (model) {
         var workModel = jQuery.extend(true,{},model);
         var statesList = [];
         var id = 1;
         var states = this.getNetState(workModel);
+        var counter = 0;
+        var statesPosition = -1;
         states.status = 'new';
         states.id = [id++];
         statesList.push(states);
-        while (this.isAnyNewStates(statesList)) {
+        while (this.isAnyNewStates(statesList) && counter < 20) {
             var firstNewStates = this.findFirstNewStates(statesList);
             this.statesToModel(workModel,firstNewStates);
             var activeTransitions = this.getActiveTransitions(workModel);
@@ -395,16 +398,31 @@ module.exports = Backbone.Model.extend({
             _.each(activeTransitions,function(entry){
                 this.fireTransition(workModel,entry);
                 var tmpStates = this.getNetState(workModel);
-                if (!this.containsStates(tmpStates, statesList)) {
-                    tmpStates.transition=[entry.getLabel()];
+                statesPosition = this.getStatePosition(tmpStates, statesList);
+                if (statesPosition == -1) {
+                    tmpStates.transitions = [];
+                    tmpStates.transitions.push(entry.getLabel());
+                    tmpStates.transition = entry.getLabel();
                     tmpStates.status = 'new';
-                    tmpStates.id = [id++];
-                    tmpStates.parent = [firstNewStates.id[0]];
+                    tmpStates.id = id++;
+                    tmpStates.parents = [];
+                    tmpStates.parents.push(firstNewStates.id);
+                    tmpStates.parent = firstNewStates.id;
                     statesList.push(tmpStates);
+                    counter++;
+                } else {
+                    if (!_.contains(statesList[statesPosition].parents, firstNewStates.id)) {
+                        if (statesList[statesPosition].parents == undefined) {
+                            statesList[statesPosition].parents = [];
+                            statesList[statesPosition].transitions = [];
+                        }
+                        statesList[statesPosition].parents.push(firstNewStates.id);
+                        statesList[statesPosition].transitions.push(entry.getLabel());
+                    }
                 }
                 this.statesToModel(workModel,firstNewStates);
             },this);
-            firstNewStates.status = 'old'
+            firstNewStates.status = 'old';
         }
         this.statesToModel(workModel,statesList[0]);
         return statesList;
@@ -430,11 +448,14 @@ module.exports = Backbone.Model.extend({
                 }
             }
         }
+        if (upperBound == 999) {
+            return '\u221E';
+        }
         return upperBound;
     },
 
     isSafe: function (statesList) {
-        if (getUpperBound(stateList) == 1) {
+        if (this.getUpperBound(statesList) == 1) {
             return true;
         }
         return false;
@@ -452,6 +473,11 @@ module.exports = Backbone.Model.extend({
                 if (statesList[i][j] > upperBounds[j][1]) {
                     upperBounds[j][1] = statesList[i][j];
                 }
+            }
+        }
+        for (var i = 0; i < upperBounds.length; i++) {
+            if (upperBounds[i][1] == 999) {
+                upperBounds[i][1] = '\u221E';
             }
         }
         return upperBounds;
@@ -475,5 +501,127 @@ module.exports = Backbone.Model.extend({
             }
         }
         return isPreservative;
+    },
+
+    reversibilityRecursiveClimber: function(statesList, checkedStatesList, reversibleStatesList, item) {
+        var isReversible = false;
+        var isNotLeaf = false;
+        if (checkedStatesList[item]) {
+            return reversibleStatesList[item];
+        }
+        checkedStatesList[item] = true;
+        for(var i = 0; i < statesList.length; i++) {
+            if(statesList[i].parent == item+1) {
+                reversibleStatesList[i] = this.reversibilityRecursiveClimber(statesList, checkedStatesList, reversibleStatesList, i);
+                isReversible = isReversible || reversibleStatesList[i];
+                isNotLeaf = true;
+            }
+        }
+        if (isNotLeaf) {
+            return isReversible;
+        }
+        _.each(statesList, function(entry) {
+             if(this.areEqualStates(statesList[item], entry) && statesList[item].id != entry.id){
+                reversibleStatesList[entry.id-1] = this.reversibilityRecursiveClimber(statesList, checkedStatesList, reversibleStatesList, entry.id-1);
+                isReversible = isReversible || reversibleStatesList[entry.id-1];
+             }
+        }, this);
+        return isReversible;
+    },
+
+    isReversible: function (statesList) {
+        var reversibleStatesList = [];
+        var checkedStatesList = []
+        for (var i = 0; i < statesList.length; i++) {
+            reversibleStatesList[i] = false;
+            checkedStatesList[i] = false;
+        }
+        reversibleStatesList[0] = true;
+        this.reversibilityRecursiveClimber(statesList, checkedStatesList, reversibleStatesList, 0);
+        for (var i = 0; i < reversibleStatesList.length; i++) {
+            if (!reversibleStatesList[i]) {
+                return false;
+            }
+        }
+        return true;
+    },
+
+    aliveTransitions: function (statesList, model) {
+        var transitions = this.getTransitions(model);
+        var transitionLabels = [];
+        var aliveTransitionsList = [];
+        var k = 0;
+        _.each(transitions, function (entry) {
+            aliveTransitionsList[k++] = [entry.getLabel(), false];
+            transitionLabels.push(entry.getLabel());
+        });
+        _.each(statesList, function(entry) {
+            if (entry.transition != undefined) {
+                aliveTransitionsList[transitionLabels.indexOf(entry.transition)][1] = true;
+            }
+        });
+        return aliveTransitionsList;
+    },
+
+    livenessRecursiveClimber: function (statesList, checkedStatesList, aliveStateTransitionList, transitionLabels, item, tailRecursionList) {
+        var isNotLeaf = false;
+        if (checkedStatesList[item]) {
+            _.each(tailRecursionList, function (entry) {
+                for (var i = 0; i < transitionLabels.length; i++) {
+                    aliveStateTransitionList[entry][i] = aliveStateTransitionList[entry][i] || aliveStateTransitionList[item][i];
+                }
+            });
+            return;
+        }
+        checkedStatesList[item] = true;
+        tailRecursionList.push(item);
+        for(var i = 0; i < statesList.length; i++) {
+            if(statesList[i].parent == item+1) {
+                _.each(tailRecursionList, function (entry) {
+                    if (statesList[i].transition != undefined) {
+                        aliveStateTransitionList[entry][transitionLabels.indexOf(statesList[i].transition)] = true;
+                    }
+                });
+                this.livenessRecursiveClimber(statesList, checkedStatesList, aliveStateTransitionList, transitionLabels, i, tailRecursionList);
+                isNotLeaf = true;
+            }
+        }
+        if (isNotLeaf) {
+            return;
+        }
+        _.each(statesList, function(entry) {
+             if(this.areEqualStates(statesList[item], entry) && statesList[item].id != entry.id){
+                this.livenessRecursiveClimber(statesList, checkedStatesList, aliveStateTransitionList, transitionLabels, entry.id-1, tailRecursionList);
+             }
+        }, this);
+        return;
+    },
+
+    isNetAlive: function (statesList, model) {
+        var aliveStateTransitionList = [];
+        var transitions = this.getTransitions(model);
+        var transitionLabels = [];
+        var checkedStatesList = [];
+        var tailRecursionList = [];
+        var k = 0;
+        _.each(transitions, function (entry) {
+            transitionLabels.push(entry.getLabel());
+        });
+        _.each(statesList, function(entry) {
+            aliveStateTransitionList[k] = [];
+            for(var i = 0; i < transitions.length; i++) {
+                aliveStateTransitionList[k][i] = false;
+            }
+            checkedStatesList[k++] = false;
+        });
+        this.livenessRecursiveClimber(statesList, checkedStatesList, aliveStateTransitionList, transitionLabels, 0, tailRecursionList);
+        for (var i = 0; i < aliveStateTransitionList.length; i++) {
+            for (var j = 0; j < aliveStateTransitionList[0].length; j++) {
+                if (!aliveStateTransitionList[i][j]) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 });

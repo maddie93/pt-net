@@ -29,6 +29,7 @@ module.exports = Backbone.View.extend({
             +'<li><button id="coveritytree">Generate Coverity Tree ></button></li>'
             +'<li><button id="coveritygraph">Generate Coverity Graph ></button></li>'
             +'</ul></div>'
+            +'<li><button id="features">Features > </button></li>'
             +'</ul></div>';
     },
 
@@ -44,6 +45,7 @@ module.exports = Backbone.View.extend({
         'click #export': EventBus.propagateGlobalEvent('io:export'),
         'click #import': EventBus.propagateGlobalEvent('io:import'),
         'click #matrix': EventBus.propagateGlobalEvent('matrix:showmatrix'),
+        'click #features': EventBus.propagateGlobalEvent('graph:showfeatures'),
         'click #coveritytree': EventBus.propagateGlobalEvent('graph:showCoverityTree'),
         'click #coveritygraph': EventBus.propagateGlobalEvent('graph:showCoverityGraph'),
         'click #graph': 'toggleGraphOptions',
