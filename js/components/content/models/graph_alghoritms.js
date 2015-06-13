@@ -9,16 +9,26 @@ module.exports = Backbone.Model.extend({
 
     mergeDuplicates: function(statesList){
         for(var i = 0; i < statesList.length; i++){
-            for(var j = 0; j < i; j++){
+            for(var j = i+1; j < statesList.length; j++){
                 if(statesList[i]!=undefined&&statesList[j]!=undefined&&this.areEqualStates(statesList[i],statesList[j])){
-                    statesList[i].parent = _.union(statesList[i].parent,statesList[j].parent);
-                    statesList[i].id = _.union(statesList[i].id,statesList[j].id);
-                    statesList[i].transition = _.union(statesList[i].transition,statesList[j].transition);
+                    statesList[i].parent = statesList[i].parent.concat(statesList[j].parent);
+                    this.switchChildsOfParent(statesList,statesList[j].id,statesList[i].id);
+                    statesList[i].transition = statesList[i].transition.concat(statesList[j].transition);
                     statesList[j] = undefined;
                 }
             }
         }
         return this.filterOutStates(statesList);
+    },
+
+    switchChildsOfParent: function(statesList,parentId,newId){
+        _.each(statesList,function(entry){
+            if(entry!=undefined){
+                for(var i = 0; i< entry.parent.length; i++){
+                    if(entry.parent[i]==parentId) entry.parent[i]=newId;
+                }
+            }
+        });
     },
 
     filterOutStates: function(statesList){
@@ -41,7 +51,8 @@ module.exports = Backbone.Model.extend({
             var cell = new joint.shapes.basic.Rect({
                 position: {x: x, y: y },
                 size: { width:100, height: 30},
-                attrs: { text:{ text: states, fill: 'black'}}
+                attrs: { text:{ text: states, fill: 'black'}},
+                type: 'cell'
             });
             cell.stateId = states.id;
             cell.stateParent = states.parent;
@@ -57,18 +68,17 @@ module.exports = Backbone.Model.extend({
             var width = (widths[tier]*2*cellsCounter[tier])+widths[tier];
             var height = (heights*2*tier)+heights
             newCell(width,height,entry);
-            for(var i = 0; i < entry.parent.length;i++){
+        },this);
+        _.each(statesList,function(entry) {
+            for (var i = 0; i < entry.parent.length; i++) {
                 var parent = entry.parent[i];
-                if(parent!=undefined){
-                    var target = this.findCellIdByStateId(entry.id[0],cellsArray)
-                    var source = this.findCellIdByStateId(parent,cellsArray)
+                if (parent != undefined) {
+                    var target = this.findCellIdByStateId(entry.id, cellsArray)
+                    var source = this.findCellIdByStateId(parent, cellsArray)
                     var edge = this.link(source, target, entry.transition[i]);
                     cellsArray.push(edge);
                 }
             }
-
-
-
         },this);
         return cellsArray;
     },
@@ -96,10 +106,7 @@ module.exports = Backbone.Model.extend({
     findCellIdByStateId: function(id,cells){
         var idTmp;
         _.each(cells,function(entry){
-            _.each(entry.stateId,function(entry2){
-                if(entry2==id) idTmp = entry.id;
-            });
-
+            if(entry.stateId==id) idTmp = entry.id;
         });
         return idTmp;
     },
@@ -113,7 +120,8 @@ module.exports = Backbone.Model.extend({
             },
             labels: [
                 { position: .5, attrs: { text: { text: label } } }
-            ]
+            ],
+            type: 'link'
         });
         return cell;
     },
@@ -121,8 +129,20 @@ module.exports = Backbone.Model.extend({
     setStateTier: function(statesList){
         statesList[0].tier = 0;
         for(var i = 1; i < statesList.length; i++){
-            statesList[i].tier = statesList[statesList[i].parent[0]-1].tier+1;
+            var parent;
+            var current = statesList[i];
+            var j = 0;
+            parent = this.findStateById(statesList,current.parent[0]);
+            statesList[i].tier = parent.tier+1;
         }
+    },
+
+    findStateById: function(statesList, id){
+        var state;
+        _.each(statesList,function(entry){
+            if(entry.id==id) state = entry;
+        });
+        return state;
     },
 
     countTiers: function(statesList){
@@ -154,7 +174,7 @@ module.exports = Backbone.Model.extend({
         var id = 1;
         var states = this.getNetState(workModel);
         states.status = 'new';
-        states.id = [id++];
+        states.id = id++;
         states.parent = [];
         states.transition = [];
         statesList.push(states);
@@ -172,8 +192,8 @@ module.exports = Backbone.Model.extend({
                 var tmpStates = this.getNetState(workModel);
                 tmpStates.transition=[entry.getLabel()];
                 tmpStates.status = 'new';
-                tmpStates.id = [id++];
-                tmpStates.parent = [firstNewStates.id[0]];
+                tmpStates.id = id++;
+                tmpStates.parent = [firstNewStates.id];
                 this.handleAccumulation(tmpStates,this.filterPath(tmpStates,statesList));
                 statesList.push(tmpStates);
                 this.statesToModel(workModel,firstNewStates);
@@ -189,7 +209,7 @@ module.exports = Backbone.Model.extend({
         var tmp = state;
         while(tmp.parent[0]!=undefined){
             tmp = statesList[tmp.parent[0]-1];
-            filtered.push(statesList[tmp.id[0]-1]);
+            filtered.push(statesList[tmp.id-1]);
         }
         return filtered;
     },
@@ -248,7 +268,7 @@ module.exports = Backbone.Model.extend({
     isStatesDuplicate: function(state,statesList){
         var isDuplicate = false;
         _.each(statesList,function(entry){
-            if(this.areEqualStates(state, entry)&&state.id[0]!=entry.id[0]&&entry.status!='new'){
+            if(this.areEqualStates(state, entry)&&state.id!=entry.id&&entry.status!='new'){
                 isDuplicate = true;
             }
         },this);
@@ -388,7 +408,7 @@ module.exports = Backbone.Model.extend({
         var counter = 0;
         var statesPosition = -1;
         states.status = 'new';
-        states.id = [id++];
+        states.id = id++;
         statesList.push(states);
         while (this.isAnyNewStates(statesList) && counter < 20) {
             var firstNewStates = this.findFirstNewStates(statesList);
@@ -556,8 +576,8 @@ module.exports = Backbone.Model.extend({
             transitionLabels.push(entry.getLabel());
         });
         _.each(statesList, function(entry) {
-            if (entry.transition != undefined) {
-                aliveTransitionsList[transitionLabels.indexOf(entry.transition)][1] = true;
+            if (entry.transition[0] != undefined) {
+                aliveTransitionsList[transitionLabels.indexOf(entry.transition[0])][1] = true;
             }
         });
         return aliveTransitionsList;
@@ -578,8 +598,8 @@ module.exports = Backbone.Model.extend({
         for(var i = 0; i < statesList.length; i++) {
             if(statesList[i].parent == item+1) {
                 _.each(tailRecursionList, function (entry) {
-                    if (statesList[i].transition != undefined) {
-                        aliveStateTransitionList[entry][transitionLabels.indexOf(statesList[i].transition)] = true;
+                    if (statesList[i].transition[0] != undefined) {
+                        aliveStateTransitionList[entry][transitionLabels.indexOf(statesList[i].transition[0])] = true;
                     }
                 });
                 this.livenessRecursiveClimber(statesList, checkedStatesList, aliveStateTransitionList, transitionLabels, i, tailRecursionList);
