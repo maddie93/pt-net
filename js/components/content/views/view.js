@@ -148,11 +148,11 @@ module.exports = GraphView.extend({
                 newCell = this.addPlace(x, y, text, tokens);
             }
 
-            _.each(jsonstring.cells, function(c) {
+            _.each(jsonstring.cells, function (c) {
                 if (c.type === 'link') {
                     if (c.source['id'] && c.source.id === cell.id) {
                         c.source.id = newCell.id;
-                    }  else if (c.target['id'] && c.target.id === cell.id) {
+                    } else if (c.target['id'] && c.target.id === cell.id) {
                         c.target.id = newCell.id;
                     }
                 }
@@ -166,7 +166,7 @@ module.exports = GraphView.extend({
             text = link.labels[0].attrs.text.text;
             newCell = this.addLink(x, y, text);
 
-            if(link.vertices) {
+            if (link.vertices) {
                 newCell.set('vertices', link.vertices);
             }
         }.bind(this));
@@ -213,8 +213,7 @@ module.exports = GraphView.extend({
                 model: graph,
                 perpendicularLinks: true
             });
-             graph.addCells(cells);
-            joint.layout.DirectedGraph.layout(graph, { setLinkVertices: false });
+            graph.addCells(cells);
             $('button#coveritytree').html('Generate Coverity Tree < ');
         }
     },
@@ -236,39 +235,129 @@ module.exports = GraphView.extend({
                 model: graph,
                 perpendicularLinks: true
             });
-            graph.resetCells(cells);
-            joint.layout.DirectedGraph.layout(graph, { setLinkVertices: false });
+            graph.addCells(cells);
+            var myAdjustVertices = _.partial(adjustVertices, graph);
+
+// adjust vertices when a cell is removed or its source/target was changed
+            graph.on('add remove change:source change:target', myAdjustVertices);
+
+// also when an user stops interacting with an element.
+            paper.on('cell:pointerup', myAdjustVertices);
             $('button#coveritygraph').html('Generate Coverity Graph < ');
         }
     },
 
     showFeatures: function () {
-            if ($('#netFeatures-popup').length) {
-                $('#netFeatures-popup').remove();
-                $('button#features').html('Features > ');
-            } else {
-                var states = this.graphAlgorithms.createCoverityTree(this.model);
+        if ($('#netFeatures-popup').length) {
+            $('#netFeatures-popup').remove();
+            $('button#features').html('Features > ');
+        } else {
+            var states = this.graphAlgorithms.createCoverityTree(this.model);
 
-                var isDeadlockFree = this.graphAlgorithms.isDeadlockFree(states);
-                var isSafe = this.graphAlgorithms.isSafe(states);
-                var isPreservative = this.graphAlgorithms.isPreservative(states);
-                var upperBound = this.graphAlgorithms.getUpperBound(states);
-                var placesBounds = this.graphAlgorithms.getPlacesBounds(states, this.model);
-                var isReversible = this.graphAlgorithms.isReversible(states);
-                var aliveTransitions = this.graphAlgorithms.aliveTransitions(states, this.model);
-                var isNetAlive = this.graphAlgorithms.isNetAlive(states, this.model);
+            var isDeadlockFree = this.graphAlgorithms.isDeadlockFree(states);
+            var isSafe = this.graphAlgorithms.isSafe(states);
+            var isPreservative = this.graphAlgorithms.isPreservative(states);
+            var upperBound = this.graphAlgorithms.getUpperBound(states);
+            var placesBounds = this.graphAlgorithms.getPlacesBounds(states, this.model);
+            var isReversible = this.graphAlgorithms.isReversible(states);
+            var aliveTransitions = this.graphAlgorithms.aliveTransitions(states, this.model);
+            var isNetAlive = this.graphAlgorithms.isNetAlive(states, this.model);
 
-                var isDeadlockFreeHTML = '<div id="deadlockfree" class="netFeatures"><h3>Deadlock free</h3>' + isDeadlockFree + '</div>';
-                var isSafeHTML = '<div id="safe" class="netFeatures"><h3>Safe</h3>' + isSafe + '</div>';
-                var isPreservativeHTML = '<div id="preservative" class="netFeatures"><h3>Preservative</h3>' + isPreservative + '</div>';
-                var upperBoundHTML = '<div id="upperbound" class="netFeatures"><h3>Petri net upper bound</h3>' + upperBound + '</div>';
-                var placesBoundsHTML = '<div id="placesbounds" class="netFeatures"><h3>Places upper bounds</h3><table>' + this.pretty2dMatrix(placesBounds) + '</table></div>';
-                var isReversibleHTML = '<div id="reversible" class="netFeatures"><h3>Reversible</h3>' + isReversible + '</div>';
-                var aliveTransitionsHTML = '<div id="alivetransitions" class="netFeatures"><h3>Alive transitions</h3><table>' + this.pretty2dMatrix(aliveTransitions) + '</table></div>';
-                var isNetAliveHTML = '<div id="alive" class="netFeatures"><h3>Alive</h3>' + isNetAlive + '</div>';
+            var isDeadlockFreeHTML = '<div id="deadlockfree" class="netFeatures"><h3>Deadlock free</h3>' + isDeadlockFree + '</div>';
+            var isSafeHTML = '<div id="safe" class="netFeatures"><h3>Safe</h3>' + isSafe + '</div>';
+            var isPreservativeHTML = '<div id="preservative" class="netFeatures"><h3>Preservative</h3>' + isPreservative + '</div>';
+            var upperBoundHTML = '<div id="upperbound" class="netFeatures"><h3>Petri net upper bound</h3>' + upperBound + '</div>';
+            var placesBoundsHTML = '<div id="placesbounds" class="netFeatures"><h3>Places upper bounds</h3><table>' + this.pretty2dMatrix(placesBounds) + '</table></div>';
+            var isReversibleHTML = '<div id="reversible" class="netFeatures"><h3>Reversible</h3>' + isReversible + '</div>';
+            var aliveTransitionsHTML = '<div id="alivetransitions" class="netFeatures"><h3>Alive transitions</h3><table>' + this.pretty2dMatrix(aliveTransitions) + '</table></div>';
+            var isNetAliveHTML = '<div id="alive" class="netFeatures"><h3>Alive</h3>' + isNetAlive + '</div>';
 
-                $('#content').prepend('<div id="netFeatures-popup" class="popup">' + isDeadlockFreeHTML + isSafeHTML + isPreservativeHTML + upperBoundHTML + placesBoundsHTML + isReversibleHTML + aliveTransitionsHTML + isNetAliveHTML + '</div>');
-                $('button#features').html('Features < ');
-            }
+            $('#content').prepend('<div id="netFeatures-popup" class="popup">' + isDeadlockFreeHTML + isSafeHTML + isPreservativeHTML + upperBoundHTML + placesBoundsHTML + isReversibleHTML + aliveTransitionsHTML + isNetAliveHTML + '</div>');
+            $('button#features').html('Features < ');
         }
+    },
+
 });
+function adjustVertices(graph, cell) {
+
+    // If the cell is a view, find its model.
+    cell = cell.model || cell;
+
+    if (cell instanceof joint.dia.Element) {
+
+        _.chain(graph.getConnectedLinks(cell)).groupBy(function (link) {
+            // the key of the group is the model id of the link's source or target, but not our cell id.
+            return _.omit([link.get('source').id, link.get('target').id], cell.id)[0];
+        }).each(function (group, key) {
+            // If the member of the group has both source and target model adjust vertices.
+            if (key !== 'undefined') adjustVertices(graph, _.first(group));
+        });
+
+        return;
+    }
+
+    // The cell is a link. Let's find its source and target models.
+    var srcId = cell.get('source').id || cell.previous('source').id;
+    var trgId = cell.get('target').id || cell.previous('target').id;
+
+    // If one of the ends is not a model, the link has no siblings.
+    if (!srcId || !trgId) return;
+
+    var siblings = _.filter(graph.getLinks(), function (sibling) {
+
+        var _srcId = sibling.get('source').id;
+        var _trgId = sibling.get('target').id;
+
+        return (_srcId === srcId && _trgId === trgId) || (_srcId === trgId && _trgId === srcId);
+    });
+
+    switch (siblings.length) {
+
+        case 0:
+            // The link was removed and had no siblings.
+            break;
+
+        case 1:
+            // There is only one link between the source and target. No vertices needed.
+            cell.unset('vertices');
+            break;
+
+        default:
+
+            // There is more than one siblings. We need to create vertices.
+
+            // First of all we'll find the middle point of the link.
+            var srcCenter = graph.getCell(srcId).getBBox().center();
+            var trgCenter = graph.getCell(trgId).getBBox().center();
+            var midPoint = g.line(srcCenter, trgCenter).midpoint();
+
+            // Then find the angle it forms.
+            var theta = srcCenter.theta(trgCenter);
+
+            // This is the maximum distance between links
+            var gap = 20;
+
+            _.each(siblings, function (sibling, index) {
+
+                // We want the offset values to be calculated as follows 0, 20, 20, 40, 40, 60, 60 ..
+                var offset = gap * Math.ceil(index / 2);
+
+                // Now we need the vertices to be placed at points which are 'offset' pixels distant
+                // from the first link and forms a perpendicular angle to it. And as index goes up
+                // alternate left and right.
+                //
+                //  ^  odd indexes
+                //  |
+                //  |---->  index 0 line (straight line between a source center and a target center.
+                //  |
+                //  v  even indexes
+                var sign = index % 2 ? 1 : -1;
+                var angle = g.toRad(theta + sign * 90);
+
+                // We found the vertex.
+                var vertex = g.point.fromPolar(offset, angle, midPoint);
+
+                sibling.set('vertices', [{x: vertex.x, y: vertex.y}]);
+            });
+    }
+}
