@@ -420,24 +420,20 @@ module.exports = Backbone.Model.extend({
                 var tmpStates = this.getNetState(workModel);
                 statesPosition = this.getStatePosition(tmpStates, statesList);
                 if (statesPosition == -1) {
-                    tmpStates.transitions = [];
-                    tmpStates.transitions.push(entry.getLabel());
-                    tmpStates.transition = entry.getLabel();
+                    tmpStates.transition = [entry.getLabel()];
                     tmpStates.status = 'new';
                     tmpStates.id = id++;
-                    tmpStates.parents = [];
-                    tmpStates.parents.push(firstNewStates.id);
-                    tmpStates.parent = firstNewStates.id;
+                    tmpStates.parent = [firstNewStates.id];
                     statesList.push(tmpStates);
                     counter++;
                 } else {
                     if (!_.contains(statesList[statesPosition].parents, firstNewStates.id)) {
-                        if (statesList[statesPosition].parents == undefined) {
-                            statesList[statesPosition].parents = [];
-                            statesList[statesPosition].transitions = [];
+                        if (statesList[statesPosition].parent == undefined) {
+                            statesList[statesPosition].parent = [];
+                            statesList[statesPosition].transition = [];
                         }
-                        statesList[statesPosition].parents.push(firstNewStates.id);
-                        statesList[statesPosition].transitions.push(entry.getLabel());
+                        statesList[statesPosition].parent.push(firstNewStates.id);
+                        statesList[statesPosition].transition.push(entry.getLabel());
                     }
                 }
                 this.statesToModel(workModel,firstNewStates);
@@ -531,7 +527,7 @@ module.exports = Backbone.Model.extend({
         }
         checkedStatesList[item] = true;
         for(var i = 0; i < statesList.length; i++) {
-            if(statesList[i].parent == item+1) {
+            if(statesList[i].parent[0] == item+1) {
                 reversibleStatesList[i] = this.reversibilityRecursiveClimber(statesList, checkedStatesList, reversibleStatesList, i);
                 isReversible = isReversible || reversibleStatesList[i];
                 isNotLeaf = true;
@@ -593,25 +589,25 @@ module.exports = Backbone.Model.extend({
             });
             return;
         }
-        checkedStatesList[item] = true;
         tailRecursionList.push(item);
         for(var i = 0; i < statesList.length; i++) {
-            if(statesList[i].parent == item+1) {
+            if(statesList[i].parent[0] == item+1) {
                 _.each(tailRecursionList, function (entry) {
                     if (statesList[i].transition[0] != undefined) {
                         aliveStateTransitionList[entry][transitionLabels.indexOf(statesList[i].transition[0])] = true;
                     }
                 });
-                this.livenessRecursiveClimber(statesList, checkedStatesList, aliveStateTransitionList, transitionLabels, i, tailRecursionList);
+                this.livenessRecursiveClimber(statesList, checkedStatesList, aliveStateTransitionList, transitionLabels, i, tailRecursionList.slice());
                 isNotLeaf = true;
             }
         }
+        checkedStatesList[item] = true;
         if (isNotLeaf) {
             return;
         }
         _.each(statesList, function(entry) {
              if(this.areEqualStates(statesList[item], entry) && statesList[item].id != entry.id){
-                this.livenessRecursiveClimber(statesList, checkedStatesList, aliveStateTransitionList, transitionLabels, entry.id-1, tailRecursionList);
+                this.livenessRecursiveClimber(statesList, checkedStatesList, aliveStateTransitionList, transitionLabels, entry.id-1, tailRecursionList.slice());
              }
         }, this);
         return;
