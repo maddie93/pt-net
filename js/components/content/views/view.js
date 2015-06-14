@@ -294,8 +294,10 @@ module.exports = GraphView.extend({
             var isNetLive = this.graphAlgorithms.isNetLive(states, this.model);
 
             var isConservativeVectorHTML = '<div id="conservativevector" class="netFeatures"><h3>Conservative with respect to weight vector</h3>'
-                                           + '<input id="vector" class="netFeatures">'
-                                           + '<button id="checkbutton" class="netFeatures">Check</button></div>'
+                                           + '<input id="vector">'
+                                           + '<button id="checkbutton">Check</button>'
+                                           + '<input type=hidden id="states" value="' + JSON.stringify(states) + '"/></div>'
+                                           + '<div id="conservativevectorresult" class="netFeatures"></div>'
             var isDeadlockFreeHTML = '<div id="deadlockfree" class="netFeatures"><h3>Deadlock free</h3>' + isDeadlockFree + '</div>';
             var isSafeHTML = '<div id="safe" class="netFeatures"><h3>Safe</h3>' + isSafe + '</div>';
             var isConservativeHTML = '<div id="conservative" class="netFeatures"><h3>Conservative</h3>' + isConservative + '</div>';
@@ -307,15 +309,40 @@ module.exports = GraphView.extend({
 
             $('#content').prepend('<div id="netFeatures-popup" class="popup">' + isDeadlockFreeHTML + isSafeHTML + isConservativeHTML + upperBoundHTML + placesBoundsHTML + isReversibleHTML + liveTransitionsHTML + isNetLiveHTML + isConservativeVectorHTML + '</div>');
             $('button#features').html('Features < ');
+            $('input#vector').val($('input#vector').val()+"[");
+            for (var i = 0; i < states[0].length - 1; i++) {
+                $('input#vector').val($('input#vector').val()+"1, ");
+            }
+            $('input#vector').val($('input#vector').val()+"1");
+            $('input#vector').val($('input#vector').val()+"]");
             $('button#checkbutton').click(function() {
                 var json = $('input#vector').val();
-                var vector = [];
-                var data = JSON.parse(json);
-                for (var prop in data) {
-                    vector.push(data[prop]);
+                var vector = JSON.parse(json);
+                var states = JSON.parse($('input#states').val());
+                var isConservative = true;
+                var sum = 0;
+                var currentSum = 0;
+                if (vector.length != states[0].length) {
+                    $('div#conservativevectorresult').empty();
+                    $('div#conservativevectorresult').append("false");
+                    return;
                 }
-                var isConservative = this.graphAlgorithms.isConservativeVector(states, vector);
-                $('div#conservativevector').append(isConservative);
+                for (var i = 0; i < states[0].length; i++) {
+                    sum += states[0][i] * vector[i];
+                }
+                for(var i = 0; i < states.length; i++) {
+                    for (var j = 0; j < states[0].length; j++) {
+                        currentSum += states[i][j] * vector[j];
+                    }
+                    if (currentSum != sum) {
+                        $('div#conservativevectorresult').empty();
+                        $('div#conservativevectorresult').append("false");
+                        return;
+                    }
+                    currentSum = 0;
+                }
+                $('div#conservativevectorresult').empty();
+                $('div#conservativevectorresult').append("true");
             });
         }
     }

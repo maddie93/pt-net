@@ -655,27 +655,5 @@ module.exports = Backbone.Model.extend({
             }
         }
         return true;
-    },
-
-    isConservativeVector: function(statesList, weightVector) {
-        var sum = 0;
-        var currentSum = 0;
-        var isConservative = true;
-        if (weightVector.length != statesList[0].length) {
-            return false;
-        }
-        for (var i = 0; i < statesList[0].length; i++) {
-            sum += statesList[0][i] * weightVector[i];
-        }
-        _.each(statesList, function(entry) {
-            for (var i = 0; i < statesList[0].length; i++) {
-                currentSum += statesList[entry.id-1][i] * weightVector[i];
-            }
-            if (currentSum != sum) {
-                isConservative = false;
-            }
-            currentSum = 0;
-        });
-        return isConservative;
     }
 });
