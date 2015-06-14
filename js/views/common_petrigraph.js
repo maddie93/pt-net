@@ -62,14 +62,6 @@ module.exports = Graph.extend({
         this.sendTokenHook = undefined;
     },
 
-    unique: function (list) {
-        var result = [];
-        $.each(list, function (i, e) {
-            if ($.inArray(e, result) == -1) result.push(e);
-        });
-        return result;
-    },
-
     _getPlacesWithTokenShift: function (links, linkEnd) {
         return _.map(links, function (link) {
             return {place: this.getCell(link.get(linkEnd).id), count: parseInt(link.getCount())};
@@ -134,9 +126,12 @@ module.exports = Graph.extend({
         }, this);
     },
 
-    isActive: function (transition) {
-        var fireableTransitions = this.getFireableTransitions();
-        return _.contains(fireableTransitions, transition);
+    unique: function (list) {
+        var result = [];
+        $.each(list, function (i, e) {
+            if ($.inArray(e, result) == -1) result.push(e);
+        });
+        return result;
     },
 
     getFireableTransitions: function () {
@@ -178,6 +173,11 @@ module.exports = Graph.extend({
             transition.select();
             this.set('selected', transition);
         }
+    },
+
+    isActive: function (transition) {
+        var fireableTransitions = this.getFireableTransitions();
+        return _.contains(fireableTransitions, transition);
     },
 
     clearSelection: function () {

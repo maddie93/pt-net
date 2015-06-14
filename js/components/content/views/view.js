@@ -4,6 +4,7 @@ var GraphLoader = require('../models/graph_loader');
 var MatrixAlgoritms = require('../models/matrix_algorithms');
 var GraphAlgoritms = require('../models/graph_alghoritms');
 var joint = require('jointjs');
+var g = joint.geometry;
 
 module.exports = GraphView.extend({
     graphLoader: new GraphLoader,
