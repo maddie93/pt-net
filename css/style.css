@@ -74,6 +74,17 @@ ul > li {
     width: 90%;
 }
 
+.buttons div#scaling input[type=text] {
+    width: 35px;
+}
+
+.buttons div#scaling button {
+    padding: 0;
+    width: 25px;
+}
+
+/*'<li><div id="scaling"><input type="text" id="scale"/><button id="scale-up">+</button><button id="scale-down">-</button></div></li>' */
+
 #content {
     background: #FFF;
     overflow: scroll;

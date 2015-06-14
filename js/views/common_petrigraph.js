@@ -117,7 +117,6 @@ module.exports = Graph.extend({
                 }
             }
             else if (linkEndType === 'source') {
-                isAnyPossibleTransitionMorePrioritized;
                 if (sendTokenHook) {
                     sendTokenHook(link);
                 }
