@@ -661,6 +661,9 @@ module.exports = Backbone.Model.extend({
         var sum = 0;
         var currentSum = 0;
         var isConservative = true;
+        if (weightVector.length != statesList[0].length) {
+            return false;
+        }
         for (var i = 0; i < statesList[0].length; i++) {
             sum += statesList[0][i] * weightVector[i];
         }

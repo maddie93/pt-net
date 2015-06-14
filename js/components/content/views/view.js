@@ -308,8 +308,9 @@ module.exports = GraphView.extend({
             $('#content').prepend('<div id="netFeatures-popup" class="popup">' + isDeadlockFreeHTML + isSafeHTML + isConservativeHTML + upperBoundHTML + placesBoundsHTML + isReversibleHTML + liveTransitionsHTML + isNetLiveHTML + isConservativeVectorHTML + '</div>');
             $('button#features').html('Features < ');
             $('button#checkbutton').click(function() {
-                var data = $('input#vector').val();
+                var json = $('input#vector').val();
                 var vector = [];
+                var data = JSON.parse(json);
                 for (var prop in data) {
                     vector.push(data[prop]);
                 }
