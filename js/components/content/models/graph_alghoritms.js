@@ -70,13 +70,15 @@ module.exports = Backbone.Model.extend({
             newCell(width,height,entry);
         },this);
         _.each(statesList,function(entry) {
-            for (var i = 0; i < entry.parent.length; i++) {
-                var parent = entry.parent[i];
-                if (parent != undefined) {
-                    var target = this.findCellIdByStateId(entry.id, cellsArray)
-                    var source = this.findCellIdByStateId(parent, cellsArray)
-                    var edge = this.link(source, target, entry.transition[i]);
-                    cellsArray.push(edge);
+            if (entry.parent != undefined) {
+                for (var i = 0; i < entry.parent.length; i++) {
+                    var parent = entry.parent[i];
+                    if (parent != undefined) {
+                        var target = this.findCellIdByStateId(entry.id, cellsArray)
+                        var source = this.findCellIdByStateId(parent, cellsArray)
+                        var edge = this.link(source, target, entry.transition[i]);
+                        cellsArray.push(edge);
+                    }
                 }
             }
         },this);
@@ -655,7 +657,7 @@ module.exports = Backbone.Model.extend({
         return true;
     },
 
-    isConservativeWithRespectToWeightVector: function(statesList, weightVector) {
+    isConservativeVector: function(statesList, weightVector) {
         var sum = 0;
         var currentSum = 0;
         var isConservative = true;
