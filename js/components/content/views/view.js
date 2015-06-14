@@ -58,6 +58,7 @@ module.exports = GraphView.extend({
         this.listenTo(EventBus, 'matrix:showmatrix', this.showMatrix);
         this.listenTo(EventBus, 'graph:showCoverityTree', this.showCoverityTree);
         this.listenTo(EventBus, 'graph:showCoverityGraph', this.showCoverityGraph);
+        this.listenTo(EventBus, 'graph:showReachabilityGraph', this.showReachabilityGraph);
         this.listenTo(EventBus, 'graph:showfeatures', this.showFeatures);
 
     },
@@ -246,6 +247,34 @@ module.exports = GraphView.extend({
         }
     },
 
+    showReachabilityGraph: function () {
+        if ($('#reachabilitygraphpaper').length) {
+            $('#reachabilitygraphpaper').remove();
+            $('button#reachabilitygraph').html('Generate Reachability Graph > ');
+        } else {
+            $('#content').prepend('<div id="reachabilitygraphpaper" class="popup"></div>');
+            var toGraph = this.graphAlgorithms.createReachabilityGraph(this.model, 20);
+            var cells = this.graphAlgorithms.convertToGraph(toGraph);
+            var graph = new joint.dia.Graph;
+
+            var paper = new joint.dia.Paper({
+                el: $('#reachabilitygraphpaper'),
+                width: 1500,
+                height: 800,
+                gridSize: 1,
+                model: graph,
+                perpendicularLinks: true
+            });
+            graph.addCells(cells);
+            var myAdjustVertices = _.partial(adjustVertices, graph);
+
+            graph.on('add remove change:source change:target', myAdjustVertices);
+
+            paper.on('cell:pointerup', myAdjustVertices);
+            $('button#reachabilitygraph').html('Generate Reachability Graph < ');
+        }
+    },
+
     showFeatures: function () {
         if ($('#netFeatures-popup').length) {
             $('#netFeatures-popup').remove();
@@ -274,7 +303,7 @@ module.exports = GraphView.extend({
             $('#content').prepend('<div id="netFeatures-popup" class="popup">' + isDeadlockFreeHTML + isSafeHTML + isPreservativeHTML + upperBoundHTML + placesBoundsHTML + isReversibleHTML + aliveTransitionsHTML + isNetAliveHTML + '</div>');
             $('button#features').html('Features < ');
         }
-    },
+    }
 
 });
 function adjustVertices(graph, cell) {

@@ -400,7 +400,7 @@ module.exports = Backbone.Model.extend({
         return temp;
     },
 
-    createReachabilityGraph: function (model) {
+    createReachabilityGraph: function (model, cellsLimit) {
         var workModel = jQuery.extend(true,{},model);
         var statesList = [];
         var id = 1;
@@ -410,7 +410,7 @@ module.exports = Backbone.Model.extend({
         states.status = 'new';
         states.id = id++;
         statesList.push(states);
-        while (this.isAnyNewStates(statesList) && counter < 20) {
+        while (this.isAnyNewStates(statesList) && counter < cellsLimit) {
             var firstNewStates = this.findFirstNewStates(statesList);
             this.statesToModel(workModel,firstNewStates);
             var activeTransitions = this.getActiveTransitions(workModel);
@@ -444,12 +444,28 @@ module.exports = Backbone.Model.extend({
         return statesList;
     },
 
+    hasChildren: function (statesList, elementId) {
+        hsChildren = false;
+        _.each(statesList, function(entry) {
+            if (entry.parent != undefined && entry.parent[0] == elementId) {
+                hasChildren = true;
+            }
+        });
+        return hasChildren;
+    },
+
     isDeadlockFree: function (statesList) {
         var isDeadlockFree = true;
         for(var i = 0; i < statesList.length; i++) {
-            if (statesList[i].status == 'end') {
+            if (!this.hasChildren(statesList, statesList[i].id)) {
                 isDeadlockFree = false;
-                break;
+                _.each(statesList, function(entry) {
+                    if (this.areEqualStates(statesList[i], entry) && statesList[i].id != entry.id) {
+                        if (this.hasChildren(statesList, entry.id)) {
+                            isDeadlockFree = true;
+                        }
+                    }
+                }, this);
             }
         }
         return isDeadlockFree;
@@ -527,7 +543,7 @@ module.exports = Backbone.Model.extend({
         }
         checkedStatesList[item] = true;
         for(var i = 0; i < statesList.length; i++) {
-            if(statesList[i].parent[0] == item+1) {
+            if(statesList[i].parent != undefined && statesList[i].parent[0] == item+1) {
                 reversibleStatesList[i] = this.reversibilityRecursiveClimber(statesList, checkedStatesList, reversibleStatesList, i);
                 isReversible = isReversible || reversibleStatesList[i];
                 isNotLeaf = true;
@@ -591,11 +607,9 @@ module.exports = Backbone.Model.extend({
         }
         tailRecursionList.push(item);
         for(var i = 0; i < statesList.length; i++) {
-            if(statesList[i].parent[0] == item+1) {
+            if(statesList[i].parent != undefined && statesList[i].parent[0] == item+1) {
                 _.each(tailRecursionList, function (entry) {
-                    if (statesList[i].transition[0] != undefined) {
-                        aliveStateTransitionList[entry][transitionLabels.indexOf(statesList[i].transition[0])] = true;
-                    }
+                    aliveStateTransitionList[entry][transitionLabels.indexOf(statesList[i].transition[0])] = true;
                 });
                 this.livenessRecursiveClimber(statesList, checkedStatesList, aliveStateTransitionList, transitionLabels, i, tailRecursionList.slice());
                 isNotLeaf = true;
