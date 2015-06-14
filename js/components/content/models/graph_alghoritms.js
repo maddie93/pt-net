@@ -590,7 +590,7 @@ module.exports = Backbone.Model.extend({
             transitionLabels.push(entry.getLabel());
         });
         _.each(statesList, function(entry) {
-            if (entry.transition[0] != undefined) {
+            if (entry.transition != undefined) {
                 aliveTransitionsList[transitionLabels.indexOf(entry.transition[0])][1] = true;
             }
         });
