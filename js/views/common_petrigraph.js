@@ -21,6 +21,10 @@ module.exports = Graph.extend({
 
         var placesToAddAndRemove = this.fireTransition(selectedTransition, sendTokenHook);
 
+        if (!placesToAddAndRemove) {
+            return;
+        }
+
         if (placesToAddAndRemove) {
             if (placesToAddAndRemove['remove']) {
                 placesWithCountRemove = placesWithCountRemove.concat(placesToAddAndRemove['remove']);

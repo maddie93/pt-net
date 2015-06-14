@@ -24,6 +24,7 @@ module.exports = GraphView.extend({
     events: {
         'click .Place': 'propagateSelectedPlace',
         'click .Transition': 'propagateSelectedTransition',
+        'dblclick .Transition': 'nextStep',
         'click .link': 'propagateSelectedLink',
         'click svg': 'clearSelection'
     },
