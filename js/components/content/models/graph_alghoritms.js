@@ -515,8 +515,8 @@ module.exports = Backbone.Model.extend({
         return upperBounds;
     },
 
-    isPreservative: function (statesList) {
-        var isPreservative = true;
+    isConservative: function (statesList) {
+        var isConservative = true;
         var sum = 0;
         var tSum = 0;
         for(var i = 0; i < statesList[0].length; i++) {
@@ -528,11 +528,11 @@ module.exports = Backbone.Model.extend({
                 tSum += statesList[i][j];
             }
             if (tSum != sum) {
-                isPreservative = false;
+                isConservative = false;
                 break;
             }
         }
-        return isPreservative;
+        return isConservative;
     },
 
     reversibilityRecursiveClimber: function(statesList, checkedStatesList, reversibleStatesList, item) {
@@ -578,7 +578,7 @@ module.exports = Backbone.Model.extend({
         return true;
     },
 
-    aliveTransitions: function (statesList, model) {
+    liveTransitions: function (statesList, model) {
         var transitions = this.getTransitions(model);
         var transitionLabels = [];
         var aliveTransitionsList = [];
@@ -627,7 +627,7 @@ module.exports = Backbone.Model.extend({
         return;
     },
 
-    isNetAlive: function (statesList, model) {
+    isNetLive: function (statesList, model) {
         var aliveStateTransitionList = [];
         var transitions = this.getTransitions(model);
         var transitionLabels = [];
@@ -653,5 +653,24 @@ module.exports = Backbone.Model.extend({
             }
         }
         return true;
+    },
+
+    isConservativeWithRespectToWeightVector: function(statesList, weightVector) {
+        var sum = 0;
+        var currentSum = 0;
+        var isConservative = true;
+        for (var i = 0; i < statesList[0].length; i++) {
+            sum += statesList[0][i] * weightVector[i];
+        }
+        _.each(statesList, function(entry) {
+            for (var i = 0; i < statesList[0].length; i++) {
+                currentSum += statesList[entry.id-1][i] * weightVector[i];
+            }
+            if (currentSum != sum) {
+                isConservative = false;
+            }
+            currentSum = 0;
+        });
+        return isConservative;
     }
 });

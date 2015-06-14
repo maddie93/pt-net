@@ -285,23 +285,23 @@ module.exports = GraphView.extend({
 
             var isDeadlockFree = this.graphAlgorithms.isDeadlockFree(states);
             var isSafe = this.graphAlgorithms.isSafe(states);
-            var isPreservative = this.graphAlgorithms.isPreservative(states);
+            var isConservative = this.graphAlgorithms.isConservative(states);
             var upperBound = this.graphAlgorithms.getUpperBound(states);
             var placesBounds = this.graphAlgorithms.getPlacesBounds(states, this.model);
             var isReversible = this.graphAlgorithms.isReversible(states);
-            var aliveTransitions = this.graphAlgorithms.aliveTransitions(states, this.model);
-            var isNetAlive = this.graphAlgorithms.isNetAlive(states, this.model);
+            var liveTransitions = this.graphAlgorithms.liveTransitions(states, this.model);
+            var isNetLive = this.graphAlgorithms.isNetLive(states, this.model);
 
             var isDeadlockFreeHTML = '<div id="deadlockfree" class="netFeatures"><h3>Deadlock free</h3>' + isDeadlockFree + '</div>';
             var isSafeHTML = '<div id="safe" class="netFeatures"><h3>Safe</h3>' + isSafe + '</div>';
-            var isPreservativeHTML = '<div id="preservative" class="netFeatures"><h3>Preservative</h3>' + isPreservative + '</div>';
+            var isConservativeHTML = '<div id="preservative" class="netFeatures"><h3>Preservative</h3>' + isConservative + '</div>';
             var upperBoundHTML = '<div id="upperbound" class="netFeatures"><h3>Petri net upper bound</h3>' + upperBound + '</div>';
             var placesBoundsHTML = '<div id="placesbounds" class="netFeatures"><h3>Places upper bounds</h3><table>' + this.pretty2dMatrix(placesBounds) + '</table></div>';
             var isReversibleHTML = '<div id="reversible" class="netFeatures"><h3>Reversible</h3>' + isReversible + '</div>';
-            var aliveTransitionsHTML = '<div id="alivetransitions" class="netFeatures"><h3>Alive transitions</h3><table>' + this.pretty2dMatrix(aliveTransitions) + '</table></div>';
-            var isNetAliveHTML = '<div id="alive" class="netFeatures"><h3>Alive</h3>' + isNetAlive + '</div>';
+            var liveTransitionsHTML = '<div id="livetransitions" class="netFeatures"><h3>Live transitions</h3><table>' + this.pretty2dMatrix(liveTransitions) + '</table></div>';
+            var isNetLiveHTML = '<div id="live" class="netFeatures"><h3>Live</h3>' + isNetLive + '</div>';
 
-            $('#content').prepend('<div id="netFeatures-popup" class="popup">' + isDeadlockFreeHTML + isSafeHTML + isPreservativeHTML + upperBoundHTML + placesBoundsHTML + isReversibleHTML + aliveTransitionsHTML + isNetAliveHTML + '</div>');
+            $('#content').prepend('<div id="netFeatures-popup" class="popup">' + isDeadlockFreeHTML + isSafeHTML + isConservativeHTML + upperBoundHTML + placesBoundsHTML + isReversibleHTML + liveTransitionsHTML + isNetLiveHTML + '</div>');
             $('button#features').html('Features < ');
         }
     }
