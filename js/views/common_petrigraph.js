@@ -49,6 +49,8 @@ module.exports = Graph.extend({
             placesWithCountAfter = this._getPlacesWithTokenShift(outbound, 'target');
 
         if (this._isFireable(transition, inbound)) {
+
+
             this._substractTokensFromPredecessors(placesWithCountBefore, inbound);
             this._addTokensToSuccessors(placesWithCountAfter, outbound);
             return {
@@ -123,6 +125,7 @@ module.exports = Graph.extend({
                 }
             }
             else if (linkEndType === 'source') {
+                isAnyPossibleTransitionMorePrioritized;
                 if (sendTokenHook) {
                     sendTokenHook(link);
                 }
@@ -131,9 +134,44 @@ module.exports = Graph.extend({
         }, this);
     },
 
+    isActive: function (transition) {
+        var fireableTransitions = this.getFireableTransitions();
+        return _.contains(fireableTransitions, transition);
+    },
+
+    getFireableTransitions: function () {
+        var transitions = this.get('transitions'),
+            possiblyActiveTransitions = [];
+
+        _.each(transitions, function (transition) {
+            if (this._isFireable(transition)) {
+                possiblyActiveTransitions.push(transition);
+            }
+        }, this);
+
+        var activeTransitions = [];
+
+        _.each(possiblyActiveTransitions, function (possiblyActiveTransition) {
+            var isAnyPossibleTransitionMorePrioritized = this._isAnyPossibleTransitionMorePrioritized(possiblyActiveTransitions, possiblyActiveTransition);
+            if (!isAnyPossibleTransitionMorePrioritized) {
+                activeTransitions.push(possiblyActiveTransition);
+            }
+        }, this);
+
+        this.set('activeTransitions', activeTransitions);
+
+        return activeTransitions;
+    },
+
+    _isAnyPossibleTransitionMorePrioritized: function (possiblyActiveTransitions, possiblyActiveTransition) {
+        return _.any(possiblyActiveTransitions, function (other) {
+            return possiblyActiveTransition != other && other.getPriority() < possiblyActiveTransition.getPriority();
+        })
+    },
+
     selectTransition: function (transition) {
         var previouslySelected = this.get('selected');
-        if (this._isFireable(transition)) {
+        if (this.isActive(transition)) {
             if (previouslySelected) {
                 previouslySelected.deselect();
             }

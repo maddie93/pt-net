@@ -17,9 +17,9 @@ module.exports = joint.dia.Paper.extend({
             return true;
         };
         options.linkView = joint.dia.LinkView.extend({
-            pointerdblclick: function(evt, x, y) {
+            pointerdblclick: function (evt, x, y) {
                 if (V(evt.target).hasClass('connection') || V(evt.target).hasClass('connection-wrap')) {
-                    this.addVertex({ x: x, y: y });
+                    this.addVertex({x: x, y: y});
                 }
             },
             options: _.extend({}, joint.dia.LinkView.prototype.options, {
@@ -42,8 +42,10 @@ module.exports = joint.dia.Paper.extend({
     }
     ,
 
-    addTransition: function (x, y, text) {
+    addTransition: function (x, y, text, priority) {
+        priority = priority || 1;
         var transition = new Transition({position: {x: x, y: y}, attrs: {'.label': {text: text}}});
+        transition.setPriority(priority);
         this.model.addCell(transition);
         this.model.get('transitions').push(transition);
         return transition;
@@ -127,19 +129,14 @@ module.exports = joint.dia.Paper.extend({
     ,
 
     markActiveTransitions: function () {
-        var transitions = this.model.get('transitions'),
-            activeTransitions = [];
+        var activeTransitions;
 
         this.clearActiveMarkers();
+        activeTransitions = this.model.getFireableTransitions();
 
-        _.each(transitions, function (t) {
-            if (this.model._isFireable(t)) {
-                t.setActive();
-                activeTransitions.push(t);
-            }
-
-        }, this);
-        this.model.set('activeTransitions', activeTransitions);
+        _.each(activeTransitions, function(transition) {
+            transition.setActive();
+        });
     }
     ,
 

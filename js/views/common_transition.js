@@ -1,6 +1,5 @@
 var V = require('vectorizer').V;
 var joint = require('jointjs');
-var Graph = joint.dia.Graph;
 var pn = joint.shapes.pn;
 
 module.exports = pn.Transition.extend({
@@ -37,7 +36,7 @@ module.exports = pn.Transition.extend({
     },
 
     deselect: function () {
-        if(this.preselectedAttrs) {
+        if (this.preselectedAttrs) {
             this._setColors(this.preselectedAttrs.fill, this.preselectedAttrs.stroke);
         }
     },
@@ -65,14 +64,51 @@ module.exports = pn.Transition.extend({
     },
 
     getLabel: function () {
-        var attributes = this.get('attrs');
-        return attributes['.label'].text;
+        var attributes, label;
+        attributes = this.get('attrs');
+        label = attributes['.label'].text;
+        return label;
+    },
+
+    getLabelWithoutPriority: function () {
+        var label, labelWithoutPriority;
+        label = this.getLabel();
+        labelWithoutPriority = this._extractTitleFromLabel(label);
+
+        return labelWithoutPriority;
+    },
+
+    _extractTitleFromLabel: function (label) {
+        var title = label.match(/.*(?=\/)/);
+        return title || label;
     },
 
     setLabel: function (val) {
+        var priority = this.getPriority();
+        var newLabelWithPriority = val + '/' + priority;
+        this.setLabelValue(newLabelWithPriority);
+    },
+
+    setLabelValue: function (val) {
         var attributes = this.get('attrs');
         attributes['.label'].text = val;
         this.unset('attrs');
         this.set('attrs', attributes);
+    },
+
+    getPriority: function () {
+        return this.get('attrs')['priority'];
+    },
+
+    setPriority: function (priority) {
+        var labelWithoutPriority;
+
+        var attributes = this.get('attrs');
+        attributes['priority'] = priority;
+        this.unset('attrs');
+        this.set('attrs', attributes);
+
+        labelWithoutPriority = this.getLabelWithoutPriority();
+        this.setLabel(labelWithoutPriority);
     }
 });
