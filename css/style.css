@@ -141,10 +141,14 @@ button#remove {
     width: 30px;
 }
 
+#matrix-popup-container, #netFeatures-popup-container{
+    width: 2000px;
+    height: 1500px;
+}
+
 #matrix-popup, #netFeatures-popup {
     width: 800px;
     height: 600px;
-    z-index: 99999;
     background: white;
     position: absolute;
     overflow: auto;

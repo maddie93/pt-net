@@ -8,7 +8,7 @@ module.exports = Backbone.View.extend({
         return '<h1>Nodes Toolbox</h1>'
             + '<div id="nodes" class="toolbox"></div>'
             + '<div class="buttons"><ul>'
-            + '<li><div id="scaling">Scale: <input type="text" id="scale"/><button id="scale-up">+</button><button id="scale-down">-</button></div></li>'
+            //+ '<li><div id="scaling">Scale: <input type="text" id="scale"/><button id="scale-up">+</button><button id="scale-down">-</button></div></li>'
             + '<li><button id="nodeop">Node options</button></li>'
             + '<div id="node-options" class="toolbox"></div>'
             + '<li><button id="simulation">Simulation > </button></li>'
@@ -40,8 +40,8 @@ module.exports = Backbone.View.extend({
     },
 
     events: {
-        'click #scale-up': 'scaleUp',
-        'click #scale-down': 'scaleDown',
+        //'click #scale-up': 'scaleUp',
+        //'click #scale-down': 'scaleDown',
         'click #simulation-mark-active-transitions': EventBus.propagateGlobalEvent('simulation:mark-active-transitions'),
         'click #simulation-reset-markers': EventBus.propagateGlobalEvent('simulation:reset-markers'),
         'click #simulation-next-step': EventBus.propagateGlobalEvent('simulation:next-step'),

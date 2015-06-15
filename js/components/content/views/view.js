@@ -26,7 +26,7 @@ module.exports = GraphView.extend({
         'click .Transition': 'propagateSelectedTransition',
         'dblclick .Transition': 'nextStep',
         'click .link': 'propagateSelectedLink',
-        'click svg': 'clearSelection'
+        //'click svg': 'clearSelection'
     },
 
     propagateSelectedPlace: function (event) {
@@ -180,8 +180,8 @@ module.exports = GraphView.extend({
     },
 
     showMatrix: function () {
-        if ($('#matrix-popup').length) {
-            $('#matrix-popup').remove();
+        if ($('#matrix-popup-container').length) {
+            $('#matrix-popup-container').remove();
             $('button#matrix').html('Matrix > ');
         } else {
             var outMatrix = this.matrixAlgorithms.createDOutputMatrix(this.model);
@@ -191,7 +191,7 @@ module.exports = GraphView.extend({
             var inMatrixHTML = '<div id="inmatrix" class="matrix"><h3>Input Matrix</h3><table>' + this.pretty2dMatrix(inMatrix) + '</table></div>';
             var outMatrixHTML = '<div id="outmatrix" class="matrix"><h3>Output Matrix</h3><table>' + this.pretty2dMatrix(outMatrix) + '</table></div>';
             var dMatrixHTML = '<div id="dmatrix" class="matrix"><h3>Incidence Matrix</h3><table>' + this.pretty2dMatrix(dMatrix) + '</table></div>';
-            $('#content').prepend('<div id="matrix-popup" class="popup">' + inMatrixHTML + outMatrixHTML + dMatrixHTML + '</div>');
+            $('#content').prepend('<div id="matrix-popup-container"><div id="matrix-popup" class="popup">' + inMatrixHTML + outMatrixHTML + dMatrixHTML + '</div></div>');
             $('button#matrix').html('Matrix < ');
         }
 
@@ -231,8 +231,8 @@ module.exports = GraphView.extend({
 
             var paper = new joint.dia.Paper({
                 el: $('#coveritygraphpaper'),
-                width: 1500,
-                height: 800,
+                width: 2000,
+                height: 1500,
                 gridSize: 1,
                 model: graph,
                 perpendicularLinks: true
@@ -261,8 +261,8 @@ module.exports = GraphView.extend({
 
             var paper = new joint.dia.Paper({
                 el: $('#reachabilitygraphpaper'),
-                width: 1500,
-                height: 800,
+                width: 2000,
+                height: 1500,
                 gridSize: 1,
                 model: graph,
                 perpendicularLinks: true
@@ -278,8 +278,8 @@ module.exports = GraphView.extend({
     },
 
     showFeatures: function () {
-        if ($('#netFeatures-popup').length) {
-            $('#netFeatures-popup').remove();
+        if ($('#netFeatures-popup-container').length) {
+            $('#netFeatures-popup-container').remove();
             $('button#features').html('Features > ');
         } else {
             var states = this.graphAlgorithms.createCoverityTree(this.model);

@@ -8,7 +8,7 @@ var Transition = require('./common_transition');
 
 module.exports = joint.dia.Paper.extend({
     initialize: function (options) {
-        _.bindAll(this, 'addTransition', 'addPlace', 'addLink', 'markActiveTransitions', 'clearActiveMarkers', 'nextStep', 'clearGraph', '_simulate', '_sendToken');
+        _.bindAll(this, 'addTransition', 'addPlace', 'addLink', 'markActiveTransitions', 'clearActiveMarkers', 'nextStep', 'clearGraph', '_simulate', '_afterTransition', '_sendToken');
         this.model = new Graph({transitions: []});
         options.interactive = function (cellView) {
             if (cellView.model instanceof joint.dia.Link) {
@@ -102,23 +102,38 @@ module.exports = joint.dia.Paper.extend({
     startSimulation: function (count) {
         var simulationId = this.model.get('simulationId');
         if (!simulationId) {
-            this._simulate(count, 2000);
+            this._simulate(count);
         }
     }
     ,
 
     _simulate: function (count) {
-        count > 0 && this.model.fireSelectedTransition(this._sendToken);
+        count > 0 && this.model.fireSelectedTransition(this._afterTransition);
 
         var simId = setInterval(function () {
             if (--count) {
-                this.model.fireSelectedTransition(this._sendToken)
+                this.model.fireSelectedTransition(this._afterTransition)
             } else {
                 clearInterval(simId);
             }
         }.bind(this), 2 * 2000);
     }
     ,
+
+    _afterTransition: function (link, callback) {
+        this._sendToken(link, callback);
+        setTimeout(function() {
+            var selected = this.model.get('selected');
+            if(selected) {
+                selected.deselect();
+                selected.setInactive();
+                this.model.set('selected', undefined);
+            }
+            this.clearActiveMarkers();
+            this.markActiveTransitions();
+        }.bind(this), 1001);
+    },
+
 
     _sendToken: function (link, callback) {
         this.findViewByModel(link).sendToken(V('circle', {
@@ -134,7 +149,7 @@ module.exports = joint.dia.Paper.extend({
         this.clearActiveMarkers();
         activeTransitions = this.model.getFireableTransitions();
 
-        _.each(activeTransitions, function(transition) {
+        _.each(activeTransitions, function (transition) {
             transition.setActive();
         });
     }
