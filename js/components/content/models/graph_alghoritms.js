@@ -447,7 +447,7 @@ module.exports = Backbone.Model.extend({
     },
 
     hasChildren: function (statesList, elementId) {
-        hsChildren = false;
+        var hasChildren = false;
         _.each(statesList, function(entry) {
             if (entry.parent != undefined && entry.parent[0] == elementId) {
                 hasChildren = true;
