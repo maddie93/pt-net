@@ -563,6 +563,19 @@ module.exports = Backbone.Model.extend({
         return isReversible;
     },
 
+    synchronizeReversibility: function (statesList, reversibleStatesList) {
+        var isReversible = false;
+        for (var i = 0; i < statesList.length; i++) {
+            isReversible = reversibleStatesList[i];
+            _.each(statesList, function(entry){
+                if (this.areEqualStates(statesList[i], entry) && statesList[i].id != entry.id) {
+                    isReversible = isReversible || reversibleStatesList[entry.id-1];
+                }
+            }, this);
+            reversibleStatesList[i] = isReversible;
+        }
+    },
+
     isReversible: function (statesList) {
         var reversibleStatesList = [];
         var checkedStatesList = []
@@ -571,6 +584,11 @@ module.exports = Backbone.Model.extend({
             checkedStatesList[i] = false;
         }
         reversibleStatesList[0] = true;
+        this.reversibilityRecursiveClimber(statesList, checkedStatesList, reversibleStatesList, 0);
+        for (var i = 0; i < statesList.length; i++) {
+            checkedStatesList[i] = false;
+        }
+        this.synchronizeReversibility(statesList, reversibleStatesList);
         this.reversibilityRecursiveClimber(statesList, checkedStatesList, reversibleStatesList, 0);
         for (var i = 0; i < reversibleStatesList.length; i++) {
             if (!reversibleStatesList[i]) {
