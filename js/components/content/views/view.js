@@ -278,8 +278,8 @@ module.exports = GraphView.extend({
     },
 
     showFeatures: function () {
-        if ($('#netFeatures-popup-container').length) {
-            $('#netFeatures-popup-container').remove();
+        if ($('#netFeatures-popup').length) {
+            $('#netFeatures-popup').remove();
             $('button#features').html('Features > ');
         } else {
             var states = this.graphAlgorithms.createCoverityTree(this.model);
